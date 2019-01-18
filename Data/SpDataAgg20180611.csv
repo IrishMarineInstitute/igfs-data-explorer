@@ -1,0 +1,27 @@
+"","x"
+"1","42000 156 [Microsoft][ODBC SQL Server Driver][SQL Server]Incorrect syntax near the keyword 'LEFT'."
+"2","[RODBC] ERROR: Could not SQLExecDirect '
+SELECT x.[fldPrimeStation]
+,x.[Yr]
+,x.[LonDec]
+,x.[LatDec]
+,x.[Species]
+,x.[CatchKg]
+,y.[CatchKg]
+FROM
+(SELECT [fldPrimeStation]
+,[Yr]
+,[LonDec]
+,[LatDec]
+,[Species]
+,[CatchKg]
+FROM [InformaticsLoad].[dbo].[SurveyAbundanceAndDistribution] x) AS SourceTable
+PIVOT
+(
+  SUM([CatchKg])
+  FOR Species IN ([ARG],[BLR],[BOF],[COD],[CUR],[DAB],[DFL],[DGS],[DII],[ESB],[GSS],
+[GUG],[HAD],[HER],[HKE],[HOM],[JOD],[LBI],[LSD],[MAC],[MEG],[MON],[NOP],[PLE],[POD],
+[POK],[POL],[PTR],[SAR],[SDR],[SHR],[SKT],[SOL],[SPR],[THR],[UNR],[WAF],[WHB],[WHG])
+) AS PivotTable;
+LEFT JOIN [InformaticsLoad].[dbo].[SurveySummary] y ON x.[fldPrimeStation] = y.[fldPrimeStation]
+  '"
