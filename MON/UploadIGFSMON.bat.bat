@@ -1,0 +1,1 @@
+"C:\Program Files\PuTTY\pscp.exe" -r -pw Bfifty2s H:\IGFS\IGFS3\MON\ shiny@10.11.0.109:./igfsmon

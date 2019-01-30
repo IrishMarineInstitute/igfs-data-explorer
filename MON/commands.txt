@@ -1,0 +1,4 @@
+cd igfsmon
+echo Bfifty2s | sudo -S cp * /srv/shiny-server/igfsmon/
+cd igfsmon/coeffs
+echo Bfifty2s | sudo -S cp * /srv/shiny-server/igfsmon/coeffs/

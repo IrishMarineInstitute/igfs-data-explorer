@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "#\n# This is the user-interface definition of a Shiny web application. You can\n# run the application by clicking 'Run App' above.\n#\n# Find out more about building applications with Shiny here:\n# \n#    http://shiny.rstudio.com/\n#\n\nlibrary(leaflet)\nlibrary(shiny)\nlibrary(shinythemes)\n#library(ggplot2)\n#library(plyr)\nlibrary(dplyr)\nlibrary(ggridges)\nlibrary(plotly)\n#library(sf)\nlibrary(tidyr)\nlibrary(tidyverse)\n\n\n\n# Define UI for application\nshinyUI(\n  navbarPage(\"Herring\", id=\"nav\",\n             theme = shinytheme(\"cerulean\"),\n             tabPanel(\"Mapping\", value=\"map\",\n             tags$head(includeScript(\"google-analytics.js\")),\n             fluidPage(\n               fluidRow(column(3, \n                               sliderInput(\"slideryear\", \"Choose Year:\", min = 2003, max = 2017, value = 2017, \n                                           step = NULL, sep = \"\", animate = TRUE),\n                               downloadButton(\"downloadData_map\", \"Download Map data\")),\n                        column(9, leafletOutput('mymap', height = 580))\n               ))\n             ),\n    tabPanel(\"Plots\", \n             fluidPage(\n               fluidRow(\n                 column(3,\n                        uiOutput(\"yearfilter\"),\n                        selectInput(\"parameter\", h3(\"Select Parameter\"),\n                                    choices = c(\"None\", \"Gear\", \"Sex\", \"Division\"), selected = \"None\"),\n                        uiOutput(\"divfilter\"),\n                        uiOutput(\"LWAdownload\")\n                        ),\n                 column(9,\n                        tabsetPanel(id=\"tabselected\", type=\"pills\",\n                          tabPanel(\"CPUE\", value=\"cpue\",\n                                   fluidRow(column(5, plotlyOutput(\"cpueplotall\", width=\"100%\")),\n                                            column(7, plotlyOutput(\"cpueplotparam\", width=\"100%\"))),\n                                   \"*Each circle is the CPUE for a haul and the line is the mean CPUE by Year\"),\n                          tabPanel(\"Abundance\", value=\"abundance\",\n                                   fluidRow(column(5, plotlyOutput(\"abundanceplotall\", width=\"100%\")),\n                                            column(7, plotlyOutput(\"abundanceplotparam\", width=\"100%\"))),\n                                   \"*Each circle is the Abundance for a haul and the line is the mean Abundance by Year\"),\n                          tabPanel(\"Length Frequency\", value=\"lf\",\n                                   fluidRow(column(5, plotOutput(\"lfplotall\")),\n                                            column(7, plotOutput(\"lfplotparam\"))),\n                                   \"Vertical line is the length cut off for Juvenile/Adult classification\"),\n                          tabPanel(\"Length/Weight\", value=\"lw\", plotlyOutput(\"lwplot\"),\n                                   \"*Filtering also available through the legend on the RHS when a parameter is chosen\"),\n                          tabPanel(\"Length/Age\", value=\"la\",uiOutput(\"latab\")),\n                          tabPanel(\"Cohort Length/Age\", value=\"co\", \n                                   uiOutput(\"cohorttab\"))#\"test\",\n                                   #plotlyOutput(\"cohortplot\"),\n                                   #tableOutput(\"coeff_table_cohort\"))\n                        )\n                 )\n               )\n             )\n    )\n))\n",
+    "created" : 1532592872497.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4270805053",
+    "id" : "17EB01C4",
+    "lastKnownWriteTime" : 1532592904,
+    "last_content_update" : -2147483648,
+    "path" : "H:/IGFS/IGFS3/HER/ui.R",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
