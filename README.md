@@ -7,6 +7,6 @@
   <p><a href="https://github.com/IrishMarineInstitute/cod-tagging">Cod Tagging</a></p>
   
 
-<informatics@marine.ie>
+For any queries contact <informatics@marine.ie>
  <p>This project was funded through the European Maritime and Fisheries Fund.</p> 
 
