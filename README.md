@@ -6,7 +6,7 @@
   <p><a href="https://github.com/IrishMarineInstitute/digital-stockbook">Digital Stockbook</a></p>
   <p><a href="https://github.com/IrishMarineInstitute/cod-tagging">Cod Tagging</a></p>
   
-     <ul>
-     <li class="p-name">Informatics Phase 1 Projects</li><li><a class="u-emaihref="mailto:informatics@marine.ie">informatics@marine.ie</a</li></ul>
+
+<li><a class="u-emaihref="mailto:informatics@marine.ie">informatics@marine.ie</a</li>
      <p>This project was funded through the European Maritime and Fisheries Fund.</p> 
 
