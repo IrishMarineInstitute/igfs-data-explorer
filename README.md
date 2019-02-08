@@ -11,7 +11,7 @@
 
   <div class="wrapper">
 
-    <h2 class="footer-heading">Informatics Phase 1 Projects</h2>
+    <h2>Informatics Phase 1 Projects</h2>
 
     <div class="footer-col-wrapper">
       <div class="footer-col footer-col-1">
