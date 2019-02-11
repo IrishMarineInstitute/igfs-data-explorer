@@ -72,5 +72,6 @@ shinyUI(
                  )
                )
              )
-    )
+    ),
+    tabPanel(HTML("</a></li><li><a href=\"https://shiny.marine.ie/igfs/\">Home Page"))
 ))

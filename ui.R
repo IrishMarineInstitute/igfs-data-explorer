@@ -69,7 +69,7 @@ dashboardPage(
                                        Seabass = "https://shiny.marine.ie/igfsesb/")
             ),
             htmlOutput("spSite"),
-            br()),
+         br()),
         box(title = "Indices",width = 3, background = "green",
             uiOutput("sp_indices"),
             uiOutput("stock_indices"),
