@@ -1,3 +1,7 @@
+##require(devtools)
+##install_version("plotly",version = "4.7.1")
+
+
 library(leaflet)
 library(shiny)
 library(flexdashboard)
@@ -25,8 +29,8 @@ dashboardPage(
             column(4,
             id="controls", fixed=FALSE, draggable = TRUE,
                           fluidRow(column(11,selectInput("catch_measure",label=NULL, choices = c("Biomass (Kg)","Number of fish (per hour)")),
-                                             sliderInput("slideryear", "Year:", min = 2003, max = 2017, value = 2017,
-                                                        step = NULL, sep = "", animate = TRUE))),
+                                             sliderInput("slideryear", "Year:", min = 2003, max = max(sp_data_gp$Year), value = 2018,
+                                                        step = 1, sep = "", animate = TRUE))),
                           fluidRow(column(6,gaugeOutput("gauge1"),style = "margin-top:-0em"),
                                    column(6,gaugeOutput("gauge2"),style = "margin-top:-0em")),
                           fluidRow(column(12,
@@ -69,7 +73,7 @@ dashboardPage(
                                        Seabass = "https://shiny.marine.ie/igfsesb/")
             ),
             htmlOutput("spSite"),
-         br()),
+            br()),
         box(title = "Indices",width = 3, background = "green",
             uiOutput("sp_indices"),
             uiOutput("stock_indices"),
