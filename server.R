@@ -1,9 +1,9 @@
 mapdata <- readRDS("Data/mapdata26022019.rds")
-sp_data_gp <- readRDS("Data/sp_data_gp_26022019.RDS")
 SpAggdata <- readRDS("Data/SpAggdata26022019.rds")
+sp_data_gp <- readRDS("Data/sp_data_gp_26022019.rds")
 
 function(input, output, session) {
-  
+
   ##### Interactive Map 1 - Timeseries #####
   # Create the map - leaflet 
   output$map <- renderLeaflet({
@@ -137,6 +137,7 @@ function(input, output, session) {
     }
   })
   ##### Pie chart  #####
+
   sp_data_gp1 <- reactive({
     subset(sp_data_gp, Year %in% input$slideryear)
   })

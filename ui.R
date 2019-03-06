@@ -9,6 +9,7 @@ library(shinydashboard)
 library(plotly)
 library(htmltools)
 library(shinycssloaders)
+sp_data_gp <- readRDS("Data/sp_data_gp_26022019.rds")
 
 dashboardPage(
   dashboardHeader(disable = TRUE),
