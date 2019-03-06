@@ -1,6 +1,6 @@
 mapdata <- readRDS("Data/mapdata26022019.rds")
 SpAggdata <- readRDS("Data/SpAggdata26022019.rds")
-sp_data_gp <- readRDS("Data/sp_data_gp_26022019.rds")
+sp_data_gp <- readRDS("Data/sp_data_gp_20190306.rds")
 
 function(input, output, session) {
 

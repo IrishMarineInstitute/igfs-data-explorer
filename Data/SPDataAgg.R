@@ -52,7 +52,7 @@ channel <- odbcDriverConnect("Driver=SQL Server;
                              Server=VMINFORMDEV01; Database=InformaticsLoad")
 sp_data<- sqlQuery(channel,Q3)
 close(channel)
-saveRDS(sp_data, file = "sp_data20180504.rds")
+#saveRDS(sp_data, file = "sp_data20180504.rds")
 
 sp_data_gp <- sp_data %>% 
   mutate(Group =
@@ -98,4 +98,5 @@ sp_data_gp <- sp_data %>%
                   'WHG' = "Large demersal"
            ))
 
-saveRDS(sp_data_gp,  "sp_data_gp_20180611.RDS")
+saveRDS(sp_data_gp,  "sp_data_gp_20190306.rds")
+
