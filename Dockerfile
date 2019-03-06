@@ -19,6 +19,37 @@ COPY google-analytics.js /srv/shiny-server/
 COPY README.md /srv/shiny-server/
 COPY server.R /srv/shiny-server/
 COPY ui.R /srv/shiny-server/
+#COPY igfs-data-explorer /srv/shiny-server/
+COPY BOF /srv/shiny-server/BOF
+COPY COD /srv/shiny-server/COD
+COPY CUR /srv/shiny-server/CUR
+COPY DAB /srv/shiny-server/DAB
+COPY DGS /srv/shiny-server/DGS
+COPY ESB /srv/shiny-server/ESB
+COPY GUG /srv/shiny-server/GUG
+COPY HAD /srv/shiny-server/HAD
+COPY HER /srv/shiny-server/HER
+COPY HKE /srv/shiny-server/HKE
+COPY HOM /srv/shiny-server/HOM
+COPY JOD /srv/shiny-server/JOD
+COPY LSD /srv/shiny-server/LSD
+COPY MAC /srv/shiny-server/MAC
+COPY MEG /srv/shiny-server/MEG
+COPY MON /srv/shiny-server/MON
+COPY NOP /srv/shiny-server/NOP
+COPY PLE /srv/shiny-server/PLE
+COPY POD /srv/shiny-server/POD
+COPY POK /srv/shiny-server/POK
+COPY POL /srv/shiny-server/POL
+COPY SDR /srv/shiny-server/SDR
+COPY SKT /srv/shiny-server/SKT
+COPY SOL /srv/shiny-server/SOL
+COPY SPR /srv/shiny-server/SPR
+COPY THR /srv/shiny-server/THR
+COPY WAF /srv/shiny-server/WAF
+COPY WHB /srv/shiny-server/WHB
+COPY WHG /srv/shiny-server/WHG
+COPY www /srv/shiny-server/www
 
 RUN Rscript -e "install.packages(c('devtools'), repos='https://cran.rstudio.com/')"
 RUN Rscript -e "install.packages(c('hexbin'), repos='https://cran.rstudio.com/')"
