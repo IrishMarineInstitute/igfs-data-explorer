@@ -18,7 +18,6 @@ COPY app.js /srv/shiny-server/
 COPY google-analytics.js /srv/shiny-server/
 COPY README.md /srv/shiny-server/
 COPY server.R /srv/shiny-server/
-COPY SPDataAgg.R /srv/shiny-server/
 COPY ui.R /srv/shiny-server/
 
 RUN Rscript -e "install.packages(c('devtools'), repos='https://cran.rstudio.com/')"
