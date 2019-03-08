@@ -24,13 +24,15 @@ library(tidyverse)
 # Define UI for application
 shinyUI(
   navbarPage("Blue Whiting", id="nav",
-             theme = shinytheme("cerulean"),
+        
+             theme = shinytheme("flatly"),
              tabPanel("Mapping", value="map",
              tags$head(includeScript("google-analytics.js")),
              fluidPage(
-               fluidRow(column(3, 
-                               sliderInput("slideryear", "Choose Year:", min = 2003, max = 2017, value = 2017, 
-                                           step = NULL, sep = "", animate = TRUE),
+               
+               fluidRow(column(3, uiOutput("yearfilter1")
+                               
+                               ,
                                downloadButton("downloadData_map", "Download Map data"),
                                br(),
                                br(),
@@ -53,17 +55,16 @@ shinyUI(
                           tabPanel("CPUE", value="cpue",
                                    fluidRow(column(5, plotlyOutput("cpueplotall", width="100%")),
                                             column(7, plotlyOutput("cpueplotparam", width="100%"))),
-                                   "*Each circle is the CPUE for a haul and the line is the mean CPUE by Year"),
+                                   "* The line is the mean CPUE by Year"),
                           tabPanel("Abundance", value="abundance",
                                    fluidRow(column(5, plotlyOutput("abundanceplotall", width="100%")),
                                             column(7, plotlyOutput("abundanceplotparam", width="100%"))),
-                                   "*Each circle is the Abundance for a haul and the line is the mean Abundance by Year"),
+                                   "* The line is the mean Abundance by Year"),
                           tabPanel("Length Frequency", value="lf",
                                    fluidRow(column(5, plotOutput("lfplotall")),
                                             column(7, plotOutput("lfplotparam"))),
-                                   "Vertical line is the length cut off for Juvenile/Adult classification"),
-                          tabPanel("Length/Weight", value="lw", plotlyOutput("lwplot"),
-                                   "*Filtering also available through the legend on the RHS when a parameter is chosen"),
+                                   "Vertical line is the length cut off for Juvenile/Adult classification ( If available) "),
+                          tabPanel("Length/Weight", value="lw", uiOutput("LengthWeightUI")),
                           tabPanel("Length/Age", value="la",uiOutput("latab")),
                           tabPanel("Cohort Length/Age", value="co", 
                                    uiOutput("cohorttab"))#"test",
@@ -73,5 +74,23 @@ shinyUI(
                  )
                )
              )
-    )
+    ),
+    tabPanel("Prediction",
+             
+             fluidPage( 
+             #  list(setBackgroundColor(
+               #color = c("#F7FBFF", "#2171B5")
+            
+            # ),
+          
+               
+               fluidRow(column(3, 
+                               uiOutput("yearfilter2"),
+                                           # animate = animationOptions(interval = 2000)),
+                       
+                        selectInput("parameterP", h3("Select Parameter"),
+                                           choices = c("None", "Gear", "Sex","Area"), selected = "None")),
+                               column(9,uiOutput("pred"))
+               )))
+   # )
 ))

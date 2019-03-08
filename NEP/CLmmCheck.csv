@@ -1,0 +1,9 @@
+"","metadata_id","Date","Year","Month","Vessel","Functional_Unit","Fishing_Grounds","Survey_Code","Haul","Sample_Type","Sex","CLmm","NepCount","PredWt_Kg","fldShotLatDecimalDegrees","fldShotLonDecimalDegrees","fldHaulLatDecimalDegrees","fldHaulLonDecimalDegrees","Gear_Type","TowDurationMin","AreaKmSq"
+"1","MI307474_30112014","00:00.0",2014,11,"Celtic Explorer","22","Smalls","IGFS2014",117,"Catch","Male",8,1,0.000289758,51.412,-6.36,51.382,-6.377,"Groundgear_A",30,0.383509255
+"2","3DYAA01482129_29102004","00:00.0",2004,10,"Celtic Explorer","19","NoFishingGround","IGFS2004",91,"Catch","Male",7,1,0.000177649,51.429,-8.59,51.425,-8.54,"Groundgear_A",30,0.399675934
+"3","MI3074102_15122014","00:00.0",2014,12,"Celtic Explorer","17","Aran","IGFS2014",175,"Catch","Female",8,1,0.00037339,53.123,-9.937,53.103,-9.893,"Groundgear_A",30,0.307588473
+"4","D6MF0R0J33_25112007","00:00.0",2007,11,"Celtic Explorer","22","Smalls","IGFS2007",181,"Catch","Female",6,1,0.000208305,51.244,-6.529,51.265,-6.568,"Groundgear_A",30,0.383882483
+"5","MI307475_30112014","00:00.0",2014,11,"Celtic Explorer","22","Smalls","IGFS2014",118,"Catch","Male",7,1,0.000226175,51.449,-6.135,51.479,-6.121,"Groundgear_A",30,0.302814226
+"6","TOUGHBOOK217_12112006","00:00.0",2006,11,"Celtic Explorer","17","Aran","IGFS2006",111,"Catch","Male",8,2,0.000634558,52.95,-9.965,52.971,-9.921,"Groundgear_A",30,0.452255498
+"7","MI483837_09122015","00:00.0",2015,12,"Celtic Explorer","19","Bantry Bay","IGFS2015",126,"Catch","Male",4,1,2.75e-05,51.63,-9.687,51.614,-9.736,"Groundgear_A",30,0.278974812
+"8","MI483843_16122015","00:00.0",2015,12,"Celtic Explorer","17","Slyne head","IGFS2015",153,"Catch","Female",8,1,0.000341,53.313,-10.276,53.29,-10.232,"Groundgear_A",30,0.455505552

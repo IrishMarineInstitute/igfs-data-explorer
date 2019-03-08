@@ -10,17 +10,18 @@
 ########################
 ### Reading in files ###
 ########################
-species="Plaice"
+species="Place"
 speciesFAO="PLE"
 ### Get Data - pull out valid stns
 # Used for Catch rate and CPUE
 dat=readRDS("dat.RDS")
 dat$symbSize <- sqrt( dat$Kg_Per_Hr/ pi )
 dat$Year = as.numeric(substr(dat$Cruise,5,8))
-#dat$fldSex=revalue(dat$fldSex, c("f"="F"))
+maxyear=max(dat$Year)
+
 
 dat1<-aggregate(dat[,c("Catch_Kg", "Kg_Per_Hr")], 
-                   by=list(dat$Year,dat$Cruise, dat$Haul, dat$Prime_Stn, dat$Lon, dat$Lat),FUN=sum,  na.rm=TRUE)
+                by=list(dat$Year,dat$Cruise, dat$Haul, dat$Prime_Stn, dat$Lon, dat$Lat),FUN=sum,  na.rm=TRUE)
 names(dat1) = c("Year", "Cruise", "Haul", "Prime_Stn", "Lon", "Lat", "Catch_Kg", "Kg_Per_Hr")
 dat1$symbSize <- sqrt( dat1$Kg_Per_Hr/ pi )
 
@@ -47,31 +48,47 @@ mapdata$symbSize <- sqrt( mapdata$No_km2/ pi )
 
 #Length/Weight and Length/Age plots
 LengthWeightAge=readRDS("LengthWeightAge.RDS")
+###For prediction
+
+LengthWeightAge2<-filter(LengthWeightAge,AreaByICESCODE !="VIIa")
+
+LengthWeightAge2<-droplevels(LengthWeightAge2)
 
 #Used for Length Frequency and Total/Adults/Juvenile numbers
 LengthData=readRDS("LengthData.RDS")
 LengthData$CatchNos30minHaul=LengthData$CatchNos/LengthData$fldTowDuration*30
 
 #Total Numbers
-TotalNumbersMap=aggregate(LengthData[,c("CatchNos", "CatchNos30minHaul")],
-                          by=list(LengthData$Year,LengthData$fldCruiseStationNumber,
-                                  LengthData$fldShotLonDecimalDegrees, LengthData$fldShotLatDecimalDegrees),
-                          FUN=sum,  na.rm=TRUE)
-names(TotalNumbersMap) = c("Year", "Haul", "LonDec", "LatDec", "CatchNos", "CatchNos30minHaul")
-TotalNumbersMap$symbSize <- sqrt( TotalNumbersMap$CatchNos30minHaul/ pi )
 
+
+#Total Numbers
+if(dim(LengthData)[1]>0){
+  TotalNumbersMap=aggregate(LengthData[,c("CatchNos", "CatchNos30minHaul")],
+                            by=list(LengthData$Year,LengthData$fldCruiseStationNumber,
+                                    LengthData$fldShotLonDecimalDegrees, LengthData$fldShotLatDecimalDegrees),
+                            FUN=sum,  na.rm=TRUE)
+  names(TotalNumbersMap) = c("Year", "Haul", "LonDec", "LatDec", "CatchNos", "CatchNos30minHaul")
+  TotalNumbersMap$symbSize <- sqrt( TotalNumbersMap$CatchNos30minHaul/ pi )
+}else{
+  TotalNumbersMap=data.frame("Year"=maxyear,
+                             "Haul"=NA,
+                             "LonDec"=-9.558,
+                             "LatDec"=55.109,
+                             "CatchNos"=NA,
+                             "CatchNos30minHaul"=NA,
+                             "symbSize"=NA)}
 
 #Juveniles
 Juveniles= filter(LengthData, AgeClassification=="Juvenile")
 if(dim(Juveniles)[1]>0){
-JuvNumbersMap=aggregate(Juveniles[,c("CatchNos", "CatchNos30minHaul")],
-                        by=list(Juveniles$Year,Juveniles$fldCruiseStationNumber,
-                                Juveniles$fldShotLonDecimalDegrees, Juveniles$fldShotLatDecimalDegrees),
-                        FUN=sum,  na.rm=TRUE)
-names(JuvNumbersMap) = c("Year", "Haul", "LonDec", "LatDec", "CatchNos", "CatchNos30minHaul")
-JuvNumbersMap$symbSize <- sqrt( JuvNumbersMap$CatchNos30minHaul/ pi )
+  JuvNumbersMap=aggregate(Juveniles[,c("CatchNos", "CatchNos30minHaul")],
+                          by=list(Juveniles$Year,Juveniles$fldCruiseStationNumber,
+                                  Juveniles$fldShotLonDecimalDegrees, Juveniles$fldShotLatDecimalDegrees),
+                          FUN=sum,  na.rm=TRUE)
+  names(JuvNumbersMap) = c("Year", "Haul", "LonDec", "LatDec", "CatchNos", "CatchNos30minHaul")
+  JuvNumbersMap$symbSize <- sqrt( JuvNumbersMap$CatchNos30minHaul/ pi )
 }else{
-  JuvNumbersMap=data.frame("Year"=2017,
+  JuvNumbersMap=data.frame("Year"=maxyear,
                            "Haul"=NA,
                            "LonDec"=-9.558,
                            "LatDec"=55.109,
@@ -83,60 +100,102 @@ JuvNumbersMap$symbSize <- sqrt( JuvNumbersMap$CatchNos30minHaul/ pi )
 Adults= filter(LengthData, AgeClassification=="Adult")
 if(dim(Adults)[1]>0){
   AdultNumbersMap=aggregate(Adults[,c("CatchNos", "CatchNos30minHaul")],
-                          by=list(Adults$Year,Adults$fldCruiseStationNumber,
-                                  Adults$fldShotLonDecimalDegrees, Adults$fldShotLatDecimalDegrees),
-                          FUN=sum,  na.rm=TRUE)
-names(AdultNumbersMap) = c("Year", "Haul", "LonDec", "LatDec", "CatchNos", "CatchNos30minHaul")
-AdultNumbersMap$symbSize <- sqrt( AdultNumbersMap$CatchNos30minHaul/ pi )
+                            by=list(Adults$Year,Adults$fldCruiseStationNumber,
+                                    Adults$fldShotLonDecimalDegrees, Adults$fldShotLatDecimalDegrees),
+                            FUN=sum,  na.rm=TRUE)
+  names(AdultNumbersMap) = c("Year", "Haul", "LonDec", "LatDec", "CatchNos", "CatchNos30minHaul")
+  AdultNumbersMap$symbSize <- sqrt( AdultNumbersMap$CatchNos30minHaul/ pi )
 }else{
-  AdultNumbersMap=data.frame("Year"=2017,
-                           "Haul"=NA,
-                           "LonDec"=-9.558,
-                           "LatDec"=55.109,
-                           "CatchNos"=NA,
-                           "CatchNos30minHaul"=NA,
-                           "symbSize"=NA)}
-
+  AdultNumbersMap=data.frame("Year"=maxyear,
+                             "Haul"=NA,
+                             "LonDec"=-9.558,
+                             "LatDec"=55.109,
+                             "CatchNos"=NA,
+                             "CatchNos30minHaul"=NA,
+                             "symbSize"=NA)}
 
 #Coefficents
-coeff_all=readRDS("coeffs/coeff_all.RDS")
-coeff_year=readRDS("coeffs/coeff_year.RDS")
-coeff_sex=readRDS("coeffs/coeff_sex.RDS")
-coeff_sex_year=readRDS("coeffs/coeff_sex_year.RDS")
-coeff_div=readRDS("coeffs/coeff_div.RDS")
-coeff_div_year=readRDS("coeffs/coeff_div_year.RDS")
-coeff_gear=readRDS("coeffs/coeff_gear.RDS")
-coeff_gear_year=readRDS("coeffs/coeff_gear_year.RDS")
-coeff_cohort=readRDS("coeffs/coeff_cohort.RDS")
-coeff_sex_cohort=readRDS("coeffs/coeff_sex_cohort.RDS")
-coeff_gear_cohort=readRDS("coeffs/coeff_gear_cohort.RDS")
-coeff_div_cohort=readRDS("coeffs/coeff_cohort_div.RDS")
+if(dim(filter(LengthWeightAge,age!="NA"))[1]==0){
+  #Coefficents
+  coeff_all=readRDS("coeffs/coeff_all.RDS")
+  coeff_year=readRDS("coeffs/coeff_year.RDS")
+  coeff_sex=readRDS("coeffs/coeff_sex.RDS")
+  coeff_sex_year=readRDS("coeffs/coeff_sex_year.RDS")
+  coeff_div=readRDS("coeffs/coeff_div.RDS")
+  coeff_div_year=readRDS("coeffs/coeff_div_year.RDS")
+  coeff_gear=readRDS("coeffs/coeff_gear.RDS")
+  coeff_gear_year=readRDS("coeffs/coeff_gear_year.RDS")
+  coeff_cohort=readRDS("coeffs/coeff_cohort.RDS")
+  coeff_sex_cohort=readRDS("coeffs/coeff_sex_cohort.RDS")
+  coeff_gear_cohort=readRDS("coeffs/coeff_gear_cohort.RDS")
+  coeff_div_cohort=readRDS("coeffs/coeff_cohort_div.RDS")
+  
+}else{
+  #Coefficents
+  coeff_all=readRDS("coeffs/coeff_all.RDS")
+  coeff_year=readRDS("coeffs/coeff_year.RDS")
+  coeff_sex=readRDS("coeffs/coeff_sex.RDS")
+  coeff_sex_year=readRDS("coeffs/coeff_sex_year.RDS")
+  coeff_div=readRDS("coeffs/coeff_div.RDS")
+  coeff_div_year=readRDS("coeffs/coeff_div_year.RDS")
+  coeff_gear=readRDS("coeffs/coeff_gear.RDS")
+  coeff_gear_year=readRDS("coeffs/coeff_gear_year.RDS")
+  coeff_cohort=readRDS("coeffs/coeff_cohort.RDS")
+  coeff_sex_cohort=readRDS("coeffs/coeff_sex_cohort.RDS")
+  coeff_gear_cohort=readRDS("coeffs/coeff_gear_cohort.RDS")
+  coeff_div_cohort=readRDS("coeffs/coeff_cohort_div.RDS")
+  coeff_area=readRDS("coeffs/coeff_area.RDS")
+  coeff_area_year=readRDS("coeffs/coeff_area_year.RDS")}
 
 #vbgm function
 vbTyp = function(age, Linf, K, t0) Linf*(1-exp(-K*(age-t0)))
 
-ageTyp = function(L, Linf, K, t0) t0 - (log(1-(L/Linf)))/K
+ageTyp = function(L, Linf, K, t0) t0 - (log(1.05-(L/Linf)))/K
 
+Mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+#############define colours#################
+
+
+def<-c("#F8766D","#00BFC4","#B79F00","#619CFF","#00BA38","#F564E3")
 
 # Define server logic required
 shinyServer(function(input, output) {
   ##########################
   ### Reactive filtering ###
   ##########################
+  
+  #####for map#####
+  output$yearfilter1=renderUI({
+    sliderInput("slideryear", "Choose Year:", min = 2003, max = maxyear, value = maxyear, step = NULL, 
+                sep = "", animate = TRUE)
+ 
+  })
   #For Length/Weight and Length/Age plots
   output$yearfilter=renderUI({
     if(input$tabselected=="lw"  | input$tabselected=="la" | input$tabselected=="co"){
-      sliderInput("slideryear1", "Choose Year:", min = 2003, max = 2017, value = 2017, step = NULL, 
+      sliderInput("slideryear1", "Choose Year:", min = 2003, max = maxyear, value = maxyear, step = NULL, 
                   sep = "", animate = TRUE)
     }
+  })
+  
+  #####for prediction#####
+  output$yearfilter2=renderUI({
+    sliderInput("slideryear2", "Choose Year:", min = 2003, max = maxyear, value = maxyear, step = NULL, 
+                sep = "")
+    
   })
   
   #Divfilter only appears if Division parameter selected
   output$divfilter=renderUI({
     if(input$parameter=="Division"){
-       divlist= factor(as.character(unique(dat$ICESCODE)))
-       checkboxGroupInput("division1", h3("Select Division"),choices=as.list(sort(divlist)))}
+      divlist= factor(as.character(unique(dat$ICESCODE)))
+      checkboxGroupInput("division1", h3("Select Division"),choices=as.list(sort(divlist)))}
   })
+  
+
   
   
   #####################
@@ -152,7 +211,6 @@ shinyServer(function(input, output) {
     contentType = "application/csv"
   )
   
-  
   output$downloadData_map <- downloadHandler(
     filename = function() {
       paste(speciesFAO, "_Map_data",".csv", sep = "")
@@ -163,8 +221,6 @@ shinyServer(function(input, output) {
     contentType = "application/csv"
   )
   
-
-  
   output$downloadData_LWA <- downloadHandler(
     filename = function() {
       #lwa.data.full<- readRDS("LengthWeightAge.RDS")
@@ -174,14 +230,14 @@ shinyServer(function(input, output) {
       write.csv(LengthWeightAge, file, row.names = FALSE)
     },
     contentType = "application/csv"
-    )
+  )
   
   output$LWAdownload=renderUI({
     if(input$tabselected=="lw"  | input$tabselected=="la" | input$tabselected=="co"){
       downloadButton("downloadData_LWA", "Download Length Weight Age data")
     }
   })
-
+  
   
   ######################
   ### Filtering data ###
@@ -218,6 +274,9 @@ shinyServer(function(input, output) {
   ###############
   html_legend <- "<img src='x-mark-16.png'>Stations Surveyed"
   
+  
+  if(is.na(LengthData$preRecruitLength[1])==FALSE){
+  
   output$mymap <- renderLeaflet({
     mymap <-leaflet() %>%
       setView(lng = -9, lat = 53, zoom = 6) %>%
@@ -235,7 +294,7 @@ shinyServer(function(input, output) {
   })
   
   icon.ship <- makeIcon(iconUrl  = 'x-mark-16.png', iconHeight = 7, iconWidth = 7)
-
+  
   observe({
     new_zoom <- input$mymap_zoom
     leafletProxy('mymap') %>%
@@ -259,15 +318,15 @@ shinyServer(function(input, output) {
                                                                      "<b>No per km<sup>2</sup>:</b> ", round(mapdata1()$No_km2,0)))  %>%
       addCircles(lng=TotalNumbers()$LonDec, lat=TotalNumbers()$LatDec, radius=5000*TotalNumbers()$symbSize/new_zoom, 
                  color = "black",  group="Total No of Fish per 30 min Haul", 
-                 popup=paste("<b>Prime Station:</b> ",TotalNumbers()$Haul, "<br />", "<b>No of Fish per 30 min Haul:</b> ",
+                 popup=paste("<b>Haul:</b> ",TotalNumbers()$Haul, "<br />", "<b>No of Fish per 30 min Haul:</b> ",
                              round(TotalNumbers()$CatchNos30minHaul,0)))  %>%
       addCircles(lng=JuvNumbers()$LonDec, lat=JuvNumbers()$LatDec, radius=5000*JuvNumbers()$symbSize/new_zoom, 
                  color = "yellow",  group="No of Juvenile Fish per 30 min Haul", 
-                 popup=paste("<b>Prime Station:</b> ",JuvNumbers()$Haul, "<br />", "<b>No of Juvenile Fish per 30 min Haul:</b> ",
+                 popup=paste("<b>Haul:</b> ",JuvNumbers()$Haul, "<br />", "<b>No of Juvenile Fish per 30 min Haul:</b> ",
                              round(JuvNumbers()$CatchNos30minHaul,0)))  %>%
       addCircles(lng=AdultNumbers()$LonDec, lat=AdultNumbers()$LatDec, radius=5000*AdultNumbers()$symbSize/new_zoom, 
                  color = "green",  group="No of Adult Fish per 30 min Haul", 
-                 popup=paste("<b>Prime Station:</b> ",AdultNumbers()$Haul, "<br />", "<b>No of Adult Fish per 30 min Haul:</b> ",
+                 popup=paste("<b>Haul:</b> ",AdultNumbers()$Haul, "<br />", "<b>No of Adult Fish per 30 min Haul:</b> ",
                              round(AdultNumbers()$CatchNos30minHaul,0)))  %>%
       addLayersControl(
         baseGroups = c("Catch Rate kg/hr", "Distribution No/km<sup>2</sup>","Total No of Fish per 30 min Haul", 
@@ -275,8 +334,57 @@ shinyServer(function(input, output) {
         overlayGroups = c("Stations Surveyed"),
         options = layersControlOptions(collapsed = FALSE)
       )
-  })
-
+  })}
+  else if(is.na(LengthData$preRecruitLength[1])==TRUE){
+    
+    output$mymap <- renderLeaflet({
+      mymap <-leaflet() %>%
+        setView(lng = -9, lat = 53, zoom = 6) %>%
+        #addTiles() %>%
+        addProviderTiles(providers$Esri.OceanBasemap) %>%
+        addPolylines(color = "grey",data= div, group = "ICES Sub-Areas", weight = 3)%>%
+        addPolylines(color = "darkgrey",data= cont, group = "ICES Sub-Areas", weight = 3)%>%
+        #addControl(html = html_legend, position = "bottomright")%>%
+        addLegend("bottomright",colors = c("blue","purple", "black"), 
+                  labels = c("Catch Rate kg/hr", "Distribution No/km<sup>2</sup>",  "Total No of Fish per 30 min Haul"))%>%
+        hideGroup("Stations Surveyed")
+      
+      return(mymap)
+    })
+    
+    icon.ship <- makeIcon(iconUrl  = 'x-mark-16.png', iconHeight = 7, iconWidth = 7)
+    
+    observe({
+      new_zoom <- input$mymap_zoom
+      leafletProxy('mymap') %>%
+        clearGroup(group =  c("Catch Rate kg/hr", "Distribution No/km<sup>2</sup>", "Stations Surveyed", 
+                              "Total No of Fish per 30 min Haul"))%>%
+        #clearShapes() %>%
+        #addCircles(lng=haul()$fldShotLonDecimalDegrees, lat=haul()$fldShotLatDecimalDegrees, radius=10000/new_zoom, 
+        #color = "grey", group="Stations Surveyed", popup=paste("Station: ",haul()$fldPrimeStation, "<br />", 
+        #"Gear Type: ",haul()$Gear_Type)) %>%
+        addMarkers(lng=haul()$fldShotLonDecimalDegrees, lat=haul()$fldShotLatDecimalDegrees, icon =icon.ship, 
+                   group="Stations Surveyed", 
+                   popup=paste("<b>Station:</b> ",haul()$fldPrimeStation, "<br />", "<b>Gear Type:</b> ",haul()$Gear_Type,"<br />", 
+                               "<b>Tow Duration:</b> ",haul()$TowDurationMin, "mins", "<br />", "<b>Door Spread:</b> ",haul()$DoorSpread, "<br />",  
+                               "<b>Wing Spread:</b> ",haul()$fldWingSpread, "<br />", "<b>Headline Height:</b> ",haul()$fldHeadlineHeight, "<br />",  
+                               "<b>Distance KM:</b> ",round(haul()$Dist_Km,2),"<br />", "<b>Stratum:</b> ", haul()$fldStratum)) %>%
+        addCircles(lng=cat()$Lon, lat=cat()$Lat, radius=10000*cat()$symbSize/new_zoom, group="Catch Rate kg/hr", 
+                   popup=paste("<b>Cruise:</b> ",cat()$Cruise, "<br />", "<b>Haul</b>: ",cat()$Haul, "<br />", 
+                               "<b>Station:</b> ",cat()$Prime_Stn, "<br />", "<b>Catch Kg/Hr:</b> ", round(cat()$Kg_Per_Hr,2))) %>%
+        addCircles(lng=mapdata1()$LonDec, lat=mapdata1()$LatDec, radius=2000*mapdata1()$symbSize/new_zoom, color = "purple",  
+                   group="Distribution No/km<sup>2</sup>", popup=paste("<b>Haul:</b> ",mapdata1()$Haul, "<br />", 
+                                                                       "<b>No per km<sup>2</sup>:</b> ", round(mapdata1()$No_km2,0)))  %>%
+        addCircles(lng=TotalNumbers()$LonDec, lat=TotalNumbers()$LatDec, radius=5000*TotalNumbers()$symbSize/new_zoom, 
+                   color = "black",  group="Total No of Fish per 30 min Haul", 
+                   popup=paste("<b>Haul:</b> ",TotalNumbers()$Haul, "<br />", "<b>No of Fish per 30 min Haul:</b> ",
+                               round(TotalNumbers()$CatchNos30minHaul,0)))  %>%
+      addLayersControl(
+          baseGroups = c("Catch Rate kg/hr", "Distribution No/km<sup>2</sup>","Total No of Fish per 30 min Haul"),
+          overlayGroups = c("Stations Surveyed"),
+          options = layersControlOptions(collapsed = FALSE)
+        )
+    })}
   
   ############
   ### CPUE ###
@@ -287,7 +395,7 @@ shinyServer(function(input, output) {
       geom_line(data=catchAll, aes(x=Year, y =KgHr), size=1)+ ylab("KG/Hour") +
       theme_bw() + theme(legend.position = "none")
     ggplotly(p)
-    })
+  })
   
   output$cpueplotparam=renderPlotly({
     if(input$parameter=="None"){
@@ -296,7 +404,7 @@ shinyServer(function(input, output) {
       catchSex <- aggregate(list(KgHr=dat$Kg_Per_Hr), 
                             list(Cruise=dat$Cruise, Year=dat$Year, fldSex=dat$fldSex), mean, na.rm=TRUE)
       p=ggplot(dat, aes(x=Year, y=Kg_Per_Hr, colour=fldSex)) + geom_jitter(width = 0.05) + 
-        geom_line(data=catchSex, aes(x=Year, y =KgHr), size=1)+ ylab("KG/Hour") +
+        geom_line(data=catchSex, aes(x=Year, y =KgHr), size=1)+ ylab("KG/Hour") +  scale_color_manual(values=c("U"="#F8766D","F"="#00BFC4","M"="#B79F00"))+
         facet_wrap(~fldSex) + theme_bw() + theme(legend.position = "none")
     }else if(input$parameter=="Gear"){
       catchGear <- aggregate(list(KgHr=dat$Kg_Per_Hr), 
@@ -314,7 +422,7 @@ shinyServer(function(input, output) {
                                     ICESCODE=cpuebydiv$ICESCODE), mean, na.rm=TRUE)
         p=ggplot(cpuebydiv, aes(x=Year, y=Kg_Per_Hr, colour=ICESCODE)) + geom_jitter(width = 0.05) + 
           geom_line(data=catchArea, aes(x=Year, y =KgHr), size=1)+ ylab("KG/Hour") +
-          facet_wrap(~ICESCODE) + theme_bw() + theme(legend.position = "none")
+          facet_wrap(~ICESCODE) + theme_bw() + theme(legend.position = "none")+ scale_colour_manual(values=def)
       }
     }
     if(is.null(p)) plotly_empty(type = "scatter", mode="markers") else ggplotly(p)
@@ -341,7 +449,7 @@ shinyServer(function(input, output) {
       meanSex<-aggregate(data1[,c("catch_km2","No_km2")], by=list(data1$Yr, data1$Sex),FUN=mean,  na.rm=TRUE)
       names(meanSex)=c("Year", "Sex", "catch_km2", "No_km2")
       p=ggplot(data1,aes(x=Yr, y=No_km2, colour=Sex)) +geom_jitter(width=0.05) + 
-        geom_line(data=meanSex, aes(x=Year, y =No_km2), size=1)+
+        geom_line(data=meanSex, aes(x=Year, y =No_km2), size=1)+   scale_color_manual(values=c("U"="#F8766D","F"="#00BFC4","M"="#B79F00"))+
         labs(y = "No/KM<sup>2</sup>", x="Year") +
         facet_wrap(~Sex) + theme_bw() + theme(legend.position = "none")
     }else if(input$parameter=="Gear"){
@@ -364,7 +472,7 @@ shinyServer(function(input, output) {
         p=ggplot(abundancebydiv, aes(x=Yr, y=No_km2, colour=ICESCODE)) + geom_jitter(width = 0.05) + 
           geom_line(data=meanDiv, aes(x=Year, y =No_km2), size=1)+
           labs(y = "No/KM<sup>2</sup>", x="Year") +
-          facet_wrap(~ICESCODE) + theme_bw() + theme(legend.position = "none")
+          facet_wrap(~ICESCODE) + theme_bw() + theme(legend.position = "none")+ scale_colour_manual(values=def)
       }
     }
     if(is.null(p)) plotly_empty(type = "scatter", mode="markers") else ggplotly(p)
@@ -392,9 +500,9 @@ shinyServer(function(input, output) {
                        by=list(LengthData$Year,LengthData$LengthClass, LengthData$fldSex),FUN=sum,  na.rm=TRUE)
       names(lfsex)=c("Year", "LengthClass", "fldSex", "CatchNos", "CatchNos30minHaul")
       ggplot(lfsex, aes(LengthClass, Year, height = CatchNos, fill=fldSex, group = Year, alpha=.5)) + 
-        geom_density_ridges(stat = "identity", scale = 2.6) + 
+        geom_density_ridges(stat = "identity", scale = 2.6) +  
         labs(y = "Year", x="Length Class") +
-        facet_wrap(~fldSex) + theme_bw() + theme(legend.position = "none")+ geom_vline(xintercept=juv_length_split)
+        facet_wrap(~fldSex) + theme_bw()+scale_fill_manual(values=c("U"="#F8766D","F"="#00BFC4","M"="#B79F00")) + theme(legend.position = "none")+ geom_vline(xintercept=juv_length_split)
     }else if(input$parameter=="Gear"){
       lfgear<-aggregate(LengthData[,c("CatchNos", "CatchNos30minHaul")],
                         by=list(LengthData$Year,LengthData$LengthClass, LengthData$fldGearDescription),FUN=sum,  na.rm=TRUE)
@@ -431,7 +539,7 @@ shinyServer(function(input, output) {
         lfbydiv=filter(MakingZeros, ICESCODE %in% c(input$division1))
         ggplot(lfbydiv, aes(LengthClass, Year, height = CatchNos, fill=ICESCODE, group = Year, alpha=.5)) + 
           geom_density_ridges(stat = "identity", scale = 2.6) + 
-          labs(y = "Year", x="Length Class") +
+          labs(y = "Year", x="Length Class") + scale_fill_manual(values=def)+
           facet_wrap(~ICESCODE) + theme_bw() + theme(legend.position = "none")+ geom_vline(xintercept=juv_length_split)
       }
     }
@@ -442,10 +550,10 @@ shinyServer(function(input, output) {
   ##########################
   LengthWeightAgeSp=reactive({
     if(is.null(input$slideryear1)){
-      filter(LengthWeightAge, fldFishWholeWeight!="NA" & Year == 2017)
+      filter(LengthWeightAge, fldFishWholeWeight!="NA" & Year == maxyear)
     }else{
       filter(LengthWeightAge, fldFishWholeWeight!="NA" & Year == input$slideryear1)}
-    })
+  })
   
   LengthWeightAgeSp1=reactive({
     filter(LengthWeightAge, fldFishWholeWeight!="NA")
@@ -455,7 +563,7 @@ shinyServer(function(input, output) {
     if(input$parameter=="None"){
       LengthWeightAgeSp=LengthWeightAgeSp()[order(LengthWeightAgeSp()$length),]
       fit1=lm(log10(fldFishWholeWeight) ~ log10(length), data = LengthWeightAgeSp)
-      p=plot_ly(LengthWeightAgeSp, x = ~length, y = ~fldFishWholeWeight, type = 'scatter', 
+      p=plot_ly(LengthWeightAgeSp, x = ~length, y = ~fldFishWholeWeight, type = 'scatter', marker=list(color='#bdbdbd'),
                 text=~paste("Length:",length,"cm","<br>Weight:",fldFishWholeWeight),
                 hoverinfo = 'text',mode = 'markers', marker =list(opacity = 0.5)) %>% 
         layout(hovermode="closest", title=paste("Length vs Weight"),
@@ -465,15 +573,15 @@ shinyServer(function(input, output) {
                margin=(list(t=70)), showlegend = FALSE) %>%
         add_trace(x=~length, y=10^(fitted(fit1)), type="scatter", 
                   mode='lines+markers',
-                  line = list(color = '#1f77b4', shape="spline"),
-                  marker = list(color = 'grey', opacity=0))
+                  line = list(color = 'black', shape="spline"),
+                  marker = list(color = 'blue', opacity=0))
       p$elementId <- NULL
     }else if(input$parameter=="Sex"){
       LengthWeightAgeSp=LengthWeightAgeSp()[order(LengthWeightAgeSp()$length),]
       fit2=lm(log10(fldFishWholeWeight) ~ log10(length) + obs.sex, data = LengthWeightAgeSp)
       p <- plot_ly(LengthWeightAgeSp, x = ~length, y = ~fldFishWholeWeight, type = 'scatter', 
                    text=~paste("Length:",length,"cm","<br>Weight:",fldFishWholeWeight, "<br>Sex:",obs.sex),
-                   color = ~obs.sex, colors=c('unclassified'='#999999','male'='#6699ff','female'='#ff66cc'),
+                   color = ~obs.sex, colors=c('U'='#F8766D','F'='#00BFC4','M'='#B79F00'),
                    hoverinfo = 'text',mode = 'markers', marker =list(opacity = 0.5)) %>% 
         layout(hovermode="closest", title=paste("Length vs Weight (points coloured by sex)"),
                xaxis = list(title = 'Length (cm)', range= c(min(LengthWeightAgeSp1()$length),
@@ -489,7 +597,7 @@ shinyServer(function(input, output) {
       p <- plot_ly(LengthWeightAgeSp(), x = ~length, y = ~fldFishWholeWeight, type = 'scatter', mode = 'markers',
                    text=~paste("Length:",length,"cm","<br>Weight:",fldFishWholeWeight,
                                "<br>Gear type:",fldGearDescription),
-                   hoverinfo = 'text',color= ~fldGearDescription, colors=c("#132B43", "#56B1F7"),
+                   hoverinfo = 'text',color= ~fldGearDescription, colors=c("#F8766D","#00BFC4"),
                    marker =list(opacity = 0.5)) %>%  
         layout(hovermode="closest", title=paste(species,"Length vs Weight (points coloured by gear)"),
                xaxis = list(title = 'Length (cm)', range= c(min(LengthWeightAgeSp1()$length),
@@ -504,7 +612,7 @@ shinyServer(function(input, output) {
       }else{
         grspnew.w2 <- filter(LengthWeightAgeSp(), ICESCODE %in% c(input$division1))
         p <- plot_ly(grspnew.w2, x = ~length, y = ~fldFishWholeWeight, type = 'scatter', mode = 'markers',
-                     colors=c('VIa'='#8DD3C7','VIIb'='#FDB462','VIIc'='#BEBADA','VIIg'='#FB8072','VIIj'='#80B1D3','VIIk'='#FFFFB3'),
+                     colors=c('VIa'='#F8766D','VIIb'='#00BFC4','VIIc'='#B79F00','VIIg'='#619CFF','VIIj'='#00BA38','VIIk'='#F564E3'),
                      text=~paste("Length:",length,"cm","<br>Weight:",fldFishWholeWeight, "<br>Division:",ICESCODE),
                      hoverinfo = 'text',color= ~ICESCODE, marker =list(opacity = 0.5)) %>%  
           layout(hovermode="closest", title=paste(species,"Length vs Weight (points coloured by divisions)"),
@@ -525,7 +633,7 @@ shinyServer(function(input, output) {
       h3(paste("No Weight data available for", species, "for", input$slideryear1, ".Try another year", sep= " "))
     }else{
       list(plotlyOutput("lwplot"),
-           "*Filtering also available through the legend on the RHS when a parameter is chosen")
+           "*Filtering also available on the RHS by clicking on the legend entry when a parameter is chosen")
     }
   })
   
@@ -534,7 +642,7 @@ shinyServer(function(input, output) {
   ##################
   LengthWeightAgeSpA=reactive({
     if(is.null(input$slideryear1)){
-      filter(LengthWeightAge, age!="NA" & Year == 2017)
+      filter(LengthWeightAge, age!="NA" & Year == maxyear)
     }else{
       filter(LengthWeightAge, age!="NA" & Year == input$slideryear1)}
   })
@@ -546,12 +654,11 @@ shinyServer(function(input, output) {
     if(input$parameter=="None"){    
       alldata=data.frame(Data= "All data", Linf=coeff_all[[1]], K=coeff_all[[2]], t0=coeff_all[[3]])
       yeardata=data.frame(Data= paste(input$slideryear1, "data"), 
-                        Linf=coeff_year[which(coeff_year$Year==input$slideryear1), "Linf"],
-                        K=coeff_year[which(coeff_year$Year==input$slideryear1), "K"], 
-                        t0=coeff_year[which(coeff_year$Year==input$slideryear1), "t0"])
+                          Linf=coeff_year[which(coeff_year$Year==input$slideryear1), "Linf"],
+                          K=coeff_year[which(coeff_year$Year==input$slideryear1), "K"], 
+                          t0=coeff_year[which(coeff_year$Year==input$slideryear1), "t0"])
       rbind(alldata, yeardata)
     }else if(input$parameter=="Sex"){
-      alldata=data.frame(Data= "All data", Linf=coeff_all[[1]], K=coeff_all[[2]], t0=coeff_all[[3]])
       alldataF=data.frame(Data= paste("All Females"), 
                           Linf=exp(coeff_sex[which(coeff_sex$Parameter =="lnlinf"), "Female"]),
                           K=exp(coeff_sex[which(coeff_sex$Parameter =="lnk"), "Female"]), 
@@ -560,36 +667,37 @@ shinyServer(function(input, output) {
                           Linf=exp(coeff_sex[which(coeff_sex$Parameter =="lnlinf"), "Male"]),
                           K=exp(coeff_sex[which(coeff_sex$Parameter =="lnk"), "Male"]), 
                           t0=-exp(coeff_sex[which(coeff_sex$Parameter =="lnnt0"), "Male"]))
-      yeardataF=data.frame(Data= paste(input$slideryear1, " Females"), 
+     
+   yeardataF=data.frame(Data= paste(input$slideryear1, " Female"), 
                            Linf=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnlinf" & coeff_sex_year$Year==input$slideryear1), "Female"]),
                            K=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnk"& coeff_sex_year$Year==input$slideryear1), "Female"]), 
                            t0=-exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnnt0"& coeff_sex_year$Year==input$slideryear1), "Female"]))
-      yeardataM=data.frame(Data= paste(input$slideryear1, " Males"), 
+      yeardataM=data.frame(Data= paste(input$slideryear1, " Male"), 
                            Linf=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnlinf" & coeff_sex_year$Year==input$slideryear1), "Male"]),
                            K=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnk"& coeff_sex_year$Year==input$slideryear1), "Male"]), 
                            t0=-exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnnt0"& coeff_sex_year$Year==input$slideryear1), "Male"]))
-      rbind(alldata, alldataF, alldataM, yeardataF, yeardataM)
+      rbind(alldataF, yeardataF,alldataM, yeardataM)
     }else if(input$parameter=="Gear"){
-      alldata=data.frame(Data= "All data", Linf=coeff_all[[1]], K=coeff_all[[2]], t0=coeff_all[[3]])
-      alldataA=data.frame(Data= paste("All GOV 3647 Groundgear A"), 
+      alldataA=data.frame(Data= paste("All  Groundgear A"), 
                           Linf=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "Linf"],
                           K=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "K"], 
                           t0=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "t0"])
-      alldataD=data.frame(Data= paste("All GOV 3647 Groundgear D"), 
+      alldataD=data.frame(Data= paste("All  Groundgear D"), 
                           Linf=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear D"), "Linf"],
                           K=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear D"), "K"], 
                           t0=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear D"), "t0"])
-      yeardataA=data.frame(Data= paste(input$slideryear1, " GOV 3647 Groundgear A"), 
+  
+      yeardataA=data.frame(Data= paste(input$slideryear1, " Groundgear A"), 
                            Linf=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear1), "Linf"],
                            K=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear1), "K"], 
                            t0=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear1), "t0"])
-      yeardataD=data.frame(Data= paste(input$slideryear1, " GOV 3647 Groundgear D"), 
+      yeardataD=data.frame(Data= paste(input$slideryear1, " Groundgear D"), 
                            Linf=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear D" & coeff_gear_year$Year==input$slideryear1), "Linf"],
                            K=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear D" & coeff_gear_year$Year==input$slideryear1), "K"], 
                            t0=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear D" & coeff_gear_year$Year==input$slideryear1), "t0"])
-      rbind(alldata, alldataA, alldataD, yeardataA, yeardataD)
+      rbind( alldataA, yeardataA,alldataD, yeardataD)
     }else if(input$parameter=="Division"){
-      yeardataVIa=data.frame(Data= paste(input$slideryear1, " VIa division"), 
+ yeardataVIa=data.frame(Data= paste(input$slideryear1, " VIa division"), 
                              Linf= coeff_div_year[which(coeff_div_year$ICESCODE=="VIa" & coeff_div_year$Year==input$slideryear1), "Linf"],
                              K=coeff_div_year[which(coeff_div_year$ICESCODE=="VIa" & coeff_div_year$Year==input$slideryear1), "K"],
                              t0=coeff_div_year[which(coeff_div_year$ICESCODE=="VIa" & coeff_div_year$Year==input$slideryear1), "t0"])
@@ -614,12 +722,12 @@ shinyServer(function(input, output) {
                               K=coeff_div_year[which(coeff_div_year$ICESCODE=="VIIk" & coeff_div_year$Year==input$slideryear1), "K"],
                               t0=coeff_div_year[which(coeff_div_year$ICESCODE=="VIIk" & coeff_div_year$Year==input$slideryear1), "t0"])
       rbind(yeardataVIa, yeardataVIIb, yeardataVIIc, yeardataVIIg, yeardataVIIj, yeardataVIIk)    
-      }
-    })
+    }
+  })
   
   output$laplot=renderPlotly({
     LWA_fish=LengthWeightAgeSpA()
-    x=seq(0, max(LengthWeightAgeSpA1()$age), length.out = 199)
+    x=seq(0,max(LengthWeightAgeSpA1()$age) , length.out = 199)
     predicted=data.frame(age=x, predlengthAll= vbTyp(x, Linf=coeff_all[[1]], K=coeff_all[[2]], t0=coeff_all[[3]]),
                          predlengthYear= vbTyp(x, 
                                                Linf= coeff_year[which(coeff_year$Year==input$slideryear1), "Linf"],
@@ -638,13 +746,13 @@ shinyServer(function(input, output) {
                                                 K=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnk"& coeff_sex_year$Year==input$slideryear1), "Male"]), 
                                                 t0=-exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnnt0"& coeff_sex_year$Year==input$slideryear1), "Male"])),
                          predlengthGearA= vbTyp(x, 
-                                              Linf= coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "Linf"],
-                                              K=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "K"],
-                                              t0=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "t0"]),
+                                                Linf= coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "Linf"],
+                                                K=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "K"],
+                                                t0=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "t0"]),
                          predlengthGearAyear= vbTyp(x, 
-                                                Linf=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear1), "Linf"],
-                                                K=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear1), "K"],
-                                                t0=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear1), "t0"]),
+                                                    Linf=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear1), "Linf"],
+                                                    K=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear1), "K"],
+                                                    t0=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear1), "t0"]),
                          predlengthGearD= vbTyp(x, 
                                                 Linf= coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear D"), "Linf"],
                                                 K=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear D"), "K"],
@@ -720,18 +828,18 @@ shinyServer(function(input, output) {
       if(all(!is.na(predicted$predlengthAll))){
         p = p %>%
           add_trace(data=predicted, x = ~age, y = ~predlengthAll, type="scatter", mode = "lines",
-                  line = list(shape="spline", color="grey"), name="All data fit", hoverinfo="none")
+                    line = list(shape="spline", color="grey"), name="All data fit", hoverinfo="none")
       }
       if(all(!is.na(predicted$predlengthYear))){
         p = p %>%
           add_trace(data=predicted, x = ~age, y = ~predlengthYear, type="scatter", mode = "lines",
-                  line = list(shape="spline", color="#1f77b4"), name=paste(input$slideryear1, "data fit"), hoverinfo="none")
+                    line = list(shape="spline",color="blue"), name=paste(input$slideryear1, "data fit"), hoverinfo="none")
       }
       p$elementId <- NULL
     }else if(input$parameter=="Sex"){
       p=plot_ly() %>% 
         add_trace(data=LWA_fish, x = ~age, y = ~length, type="scatter", mode="markers",
-                  color = ~obs.sex, colors=c('unclassified'='#999999','male'='#6699ff','female'='#ff66cc'),
+                  color = ~obs.sex, colors=c('U'='#F8766D','F'='#00BFC4','M'='#B79F00'),
                   text=~paste("Length:",length,"cm","<br>Age:",age, "<br>Sex:", obs.sex),
                   hoverinfo = 'text',marker =list(opacity = 0.5), showlegend = TRUE) %>% 
         layout(hovermode="closest", title=paste("Length vs Age (points coloured by sex)"),
@@ -739,22 +847,22 @@ shinyServer(function(input, output) {
                             range= c(min(LengthWeightAgeSpA1()$age)-.1,max(LengthWeightAgeSpA1()$age)+1)),
                yaxis = list(title = 'Length (cm)', zeroline=FALSE,
                             range = c(0, max(LengthWeightAgeSpA1()$length, na.rm = T)*1.05)),
-               margin=(list(t=70)), showlegend = TRUE)
+               margin=(list(t=70)))
       if(all(!is.na(predicted$predlengthFYear))){
         p = p %>%
-        add_trace(data=predicted, x = ~age, y = ~predlengthFYear, type="scatter", mode = "lines",
-                  line = list(shape="spline", color="#ff66cc"), name=paste(input$slideryear1,"Female data fit"), hoverinfo="none")
+          add_trace(data=predicted, x = ~age, y = ~predlengthFYear, type="scatter", mode = "lines",
+                    line = list(shape="spline", color="#00BFC4"), name = "F", hoverinfo="none")
       }
       if(all(!is.na(predicted$predlengthMYear))){
         p = p %>%
           add_trace(data=predicted, x = ~age, y = ~predlengthMYear, type="scatter", mode = "lines",
-                  line = list(shape="spline", color="#6699ff"), name=paste(input$slideryear1,"Male data fit"), hoverinfo="none")
+                    line = list(shape="spline", color="#B79F00"), name = "M", hoverinfo="none")
       }
       p$elementId <- NULL
     }else if(input$parameter=="Gear"){
       p=plot_ly() %>% 
         add_trace(data=LWA_fish, x = ~age, y = ~length, type="scatter", mode="markers",
-                  color = ~fldGearDescription, colors=c("#132B43", "#56B1F7"),
+                  color = ~fldGearDescription, colors=c("#F8766D","#00BFC4"),
                   text=~paste("Length:",length,"cm","<br>Age:",age, "<br>Gear type:",fldGearDescription),
                   hoverinfo = 'text',marker =list(opacity = 0.5), showlegend = TRUE) %>%
         layout(hovermode="closest", title=paste("Length vs Age (points coloured by gear)"),
@@ -765,13 +873,13 @@ shinyServer(function(input, output) {
       if(all(!is.na(predicted$predlengthGearAyear))){
         p = p %>%
           add_trace(data=predicted, x = ~age, y = ~predlengthGearAyear, type="scatter", mode = "lines",
-                    line = list(shape="spline", color="#132B43"), name="GOV 3647 Groundgear A", hoverinfo="none")
-        }
+                    line = list(shape="spline", color="#F8766D"),name="GOV 3647 Groundgear A", hoverinfo="none")
+      }
       if(all(!is.na(predicted$predlengthGearDyear))){
-          p = p %>%
-            add_trace(data=predicted, x = ~age, y = ~predlengthGearDyear, type="scatter", mode = "lines",
-                    line = list(shape="spline", color="#56B1F7"), name="GOV 3647 Groundgear D", hoverinfo="none")  
-        }
+        p = p %>%
+          add_trace(data=predicted, x = ~age, y = ~predlengthGearDyear, type="scatter", mode = "lines",
+                    line = list(shape="spline", color="#00BFC4"),name="GOV 3647 Groundgear D", hoverinfo="none")  
+      }
       p$elementId <- NULL
     }else if(input$parameter=="Division"){
       if(is.null(input$division1)){
@@ -784,35 +892,35 @@ shinyServer(function(input, output) {
         }else{
           
           p=plot_ly() %>% 
-          add_trace(data=grspnew.w2, x = ~age, y = ~length, type="scatter", mode="markers",color= ~ICESCODE,
-                    colors=c('VIa'='#8DD3C7','VIIb'='#FDB462','VIIc'='#BEBADA','VIIg'='#FB8072','VIIj'='#80B1D3','VIIk'='#FFFFB3'),
-                    text=~paste("Length:",length,"cm","<br>Age:",age, "<br>Division:",ICESCODE),
-                    hoverinfo = 'text',marker =list(opacity = 0.5), showlegend = TRUE) %>% 
-         layout(hovermode="closest", title=paste("Age vs Length (points coloured by divisions)"),
-                 yaxis = list(title = 'Length (cm)', range= c(min(LengthWeightAgeSpA1()$length), 
-                                                              max(LengthWeightAgeSpA1()$length)+1), zeroline = FALSE),
-                 xaxis = list(title = 'Age', range = c(-0.1, max(LengthWeightAgeSpA1()$age, na.rm = T)*1.05), 
-                              zeroline = FALSE), margin=(list(t=70)), showlegend = TRUE)
+            add_trace(data=grspnew.w2, x = ~age, y = ~length, type="scatter", mode="markers",color= ~ICESCODE,
+                      colors=c('VIa'='#F8766D','VIIb'='#00BFC4','VIIc'='#B79F00','VIIg'='#619CFF','VIIj'='#00BA38','VIIk'='#F564E3'),
+                      text=~paste("Length:",length,"cm","<br>Age:",age, "<br>Division:",ICESCODE),
+                      hoverinfo = 'text',marker =list(opacity = 0.5), showlegend = TRUE) %>% 
+            layout(hovermode="closest", title=paste("Age vs Length (points coloured by divisions)"),
+                   yaxis = list(title = 'Length (cm)', range= c(min(LengthWeightAgeSpA1()$length), 
+                                                                max(LengthWeightAgeSpA1()$length)+1), zeroline = FALSE),
+                   xaxis = list(title = 'Age', range = c(-0.1, max(LengthWeightAgeSpA1()$age, na.rm = T)*1.05), 
+                                zeroline = FALSE), margin=(list(t=70)), showlegend = TRUE)
           
           if(all(!is.na(predicted$predlengthVIaYear)) & "VIa" %in% input$division1 ){
             p=p %>% add_trace(data=predicted, x = ~age, y = ~predlengthVIaYear, type="scatter", mode = "lines",
-                              line = list(shape="spline", color='#8DD3C7'), name=paste(input$slideryear1,"VIa data fit"), hoverinfo="none")}  
+                              line = list(shape="spline", color='#F8766D'), name=paste(input$slideryear1,"VIa data fit"), hoverinfo="none")}  
           if(all(!is.na(predicted$predlengthVIIbYear))& "VIIb" %in% input$division1 ){
             p=p %>% add_trace(data=predicted, x = ~age, y = ~predlengthVIIbYear, type="scatter", mode = "lines",
-                              line = list(shape="spline", color='#FDB462'), name=paste(input$slideryear1,"VIIb data fit"), hoverinfo="none")}  
+                              line = list(shape="spline", color='#00BFC4'), name=paste(input$slideryear1,"VIIb data fit"), hoverinfo="none")}  
           if(all(!is.na(predicted$predlengthVIIcYear))& "VIIc" %in% input$division1 ){
             p=p %>% add_trace(data=predicted, x = ~age, y = ~predlengthVIIcYear, type="scatter", mode = "lines",
-                              line = list(shape="spline", color='#BEBADA'), name=paste(input$slideryear1,"VIIc data fit"), hoverinfo="none")}  
+                              line = list(shape="spline", color='#B79F00'), name=paste(input$slideryear1,"VIIc data fit"), hoverinfo="none")}  
           if(all(!is.na(predicted$predlengthVIIgYear))& "VIIg" %in% input$division1 ){
             p=p %>% add_trace(data=predicted, x = ~age, y = ~predlengthVIIgYear, type="scatter", mode = "lines",
-                              line = list(shape="spline", color='#FB8072'), name=paste(input$slideryear1,"VIIg data fit"), hoverinfo="none")}  
+                              line = list(shape="spline", color='#619CFF'), name=paste(input$slideryear1,"VIIg data fit"), hoverinfo="none")}  
           if(all(!is.na(predicted$predlengthVIIjYear))& "VIIj" %in% input$division1 ){
             p=p %>% add_trace(data=predicted, x = ~age, y = ~predlengthVIIjYear, type="scatter", mode = "lines",
-                    line = list(shape="spline", color='#80B1D3'), name=paste(input$slideryear1,"VIIj data fit"), hoverinfo="none")}  
+                              line = list(shape="spline", color='#00BA38'), name=paste(input$slideryear1,"VIIj data fit"), hoverinfo="none")}  
           if(all(!is.na(predicted$predlengthVIIkYear))& "VIIk" %in% input$division1 ){
             p=p %>% add_trace(data=predicted, x = ~age, y = ~predlengthVIIkYear, type="scatter", mode = "lines",
-                            line = list(shape="spline", color='#FFFFB3'), name=paste(input$slideryear1,"VIIk data fit"), hoverinfo="none")}  
-         
+                              line = list(shape="spline", color='#F564E3'), name=paste(input$slideryear1,"VIIk data fit"), hoverinfo="none")}  
+          
           p$elementId <- NULL
         }
       }
@@ -821,100 +929,9 @@ shinyServer(function(input, output) {
   })
   
   
-  output$predlength=reactive({
-    round(vbTyp(input$age, 
-          Linf= coeff_year[which(coeff_year$Year==input$slideryear1), "Linf"],
-          K=coeff_year[which(coeff_year$Year==input$slideryear1), "K"], 
-          t0=coeff_year[which(coeff_year$Year==input$slideryear1), "t0"]),2)
-    })
-  
-  output$predage=renderTable({
-    if(input$parameter=="None"){
-      dataAll= data.frame(Data= "All Data",
-                         'Predicted Age' = round(ageTyp(input$length, 
-                                                        Linf=coeff_all[[1]], K=coeff_all[[2]], t0=coeff_all[[3]]),2))
-      dataYear= data.frame(Data= paste(input$slideryear, "Data", sep = " "),
-                'Predicted Age' = round(ageTyp(input$length, 
-                Linf= coeff_year[which(coeff_year$Year==input$slideryear1), "Linf"],
-                K=coeff_year[which(coeff_year$Year==input$slideryear1), "K"], 
-                t0=coeff_year[which(coeff_year$Year==input$slideryear1), "t0"]),2))
-      rbind(dataAll,dataYear)
-    }else if(input$parameter=="Gear"){
-      predlengthGearA= data.frame(Data= "All Data GOV 3647 Groundgear A",
-                                  'Predicted Age' = round(ageTyp(input$length, 
-                             Linf= coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "Linf"],
-                             K=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "K"],
-                             t0=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "t0"]),2))
-      predlengthGearAyear= data.frame(Data= paste(input$slideryear, "Data GOV 3647 Groundgear A", sep = " "),
-                                      'Predicted Age' = round(ageTyp(input$length, 
-                                 Linf=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear1), "Linf"],
-                                 K=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear1), "K"],
-                                 t0=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear1), "t0"]),2))
-      predlengthGearD= data.frame(Data= "All Data GOV 3647 Groundgear D",
-                                  'Predicted Age' = round(ageTyp(input$length, 
-                             Linf= coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear D"), "Linf"],
-                             K=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear D"), "K"],
-                             t0=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear D"), "t0"]),2))
-      predlengthGearDyear= data.frame(Data= paste(input$slideryear, "Data GOV 3647 Groundgear D", sep = " "),
-                                      'Predicted Age' = round(ageTyp(input$length, 
-                                 Linf=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear D" & coeff_gear_year$Year==input$slideryear1), "Linf"],
-                                 K=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear D" & coeff_gear_year$Year==input$slideryear1), "K"],
-                                 t0=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear D" & coeff_gear_year$Year==input$slideryear1), "t0"]),2))
-      rbind(predlengthGearA,predlengthGearAyear, predlengthGearD, predlengthGearDyear)
-    }else if(input$parameter=="Sex"){
-      predlengthF= data.frame(Data= "All Female Data",
-                              'Predicted Age' = round(ageTyp(input$length, Linf=exp(coeff_sex[which(coeff_sex$Parameter =="lnlinf"), "Female"]),
-                         K=exp(coeff_sex[which(coeff_sex$Parameter =="lnk"), "Female"]), 
-                         t0=-exp(coeff_sex[which(coeff_sex$Parameter =="lnnt0"), "Female"])),2))
-      predlengthM= data.frame(Data= "All Male Data",
-                              'Predicted Age' = round(ageTyp(input$length, Linf=exp(coeff_sex[which(coeff_sex$Parameter =="lnlinf"), "Male"]),
-                         K=exp(coeff_sex[which(coeff_sex$Parameter =="lnk"), "Male"]), 
-                         t0=-exp(coeff_sex[which(coeff_sex$Parameter =="lnnt0"), "Male"])),2))
-      predlengthFYear= data.frame(Data= paste(input$slideryear, "Female Data", sep = " "),
-                                  'Predicted Age' = round(ageTyp(input$length, 
-                            Linf=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnlinf" & coeff_sex_year$Year==input$slideryear1), "Female"]),
-                             K=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnk"& coeff_sex_year$Year==input$slideryear1), "Female"]), 
-                             t0=-exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnnt0"& coeff_sex_year$Year==input$slideryear1), "Female"])),2))
-      predlengthMYear= data.frame(Data= paste(input$slideryear, "Male Data", sep = " "),
-                                  'Predicted Age' = round(ageTyp(input$length, Linf=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnlinf" & coeff_sex_year$Year==input$slideryear1), "Male"]),
-                             K=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnk"& coeff_sex_year$Year==input$slideryear1), "Male"]), 
-                             t0=-exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnnt0"& coeff_sex_year$Year==input$slideryear1), "Male"])),2))
-      rbind(predlengthF, predlengthFYear, predlengthM, predlengthMYear)
-      }else if(input$parameter=="Division"){
-        predlengthVIaYear= data.frame(Data= paste(input$slideryear, "VIa Division", sep = " "),
-                                      'Predicted Age' = round(ageTyp(input$length,
-                                 Linf= coeff_div_year[which(coeff_div_year$ICESCODE=="VIa" & coeff_div_year$Year==input$slideryear1), "Linf"][[1]],
-                                 K=coeff_div_year[which(coeff_div_year$ICESCODE=="VIa" & coeff_div_year$Year==input$slideryear1), "K"][[1]],
-                                 t0=coeff_div_year[which(coeff_div_year$ICESCODE=="VIa" & coeff_div_year$Year==input$slideryear1), "t0"][[1]]),2))
-        predlengthVIIbYear= data.frame(Data= paste(input$slideryear, "VIIb Division", sep = " "),
-                                       'Predicted Age' = round(ageTyp(input$length,
-                                  Linf= coeff_div_year[which(coeff_div_year$ICESCODE=="VIIb" & coeff_div_year$Year==input$slideryear1), "Linf"][[1]],
-                                  K=coeff_div_year[which(coeff_div_year$ICESCODE=="VIIb" & coeff_div_year$Year==input$slideryear1), "K"][[1]], 
-                                  t0=coeff_div_year[which(coeff_div_year$ICESCODE=="VIIb" & coeff_div_year$Year==input$slideryear1 ), "t0"][[1]]),2))
-        predlengthVIIcYear=data.frame(Data= paste(input$slideryear, "VIIc Division", sep = " "),
-                                      'Predicted Age' = round(ageTyp(input$length,
-                                  Linf= coeff_div_year[which(coeff_div_year$ICESCODE=="VIIc" & coeff_div_year$Year==input$slideryear1), "Linf"][[1]],
-                                  K=coeff_div_year[which(coeff_div_year$ICESCODE=="VIIc" & coeff_div_year$Year==input$slideryear1 ), "K"][[1]], 
-                                  t0=coeff_div_year[which(coeff_div_year$ICESCODE=="VIIc" & coeff_div_year$Year==input$slideryear1 ), "t0"][[1]]),2))
-        predlengthVIIgYear= data.frame(Data= paste(input$slideryear, "VIIg Division", sep = " "),
-                                       'Predicted Age' = round(ageTyp(input$length,
-                                  Linf= coeff_div_year[which(coeff_div_year$ICESCODE=="VIIg" & coeff_div_year$Year==input$slideryear1 ), "Linf"][[1]],
-                                  K=coeff_div_year[which(coeff_div_year$ICESCODE=="VIIg" & coeff_div_year$Year==input$slideryear1 ), "K"][[1]],
-                                  t0=coeff_div_year[which(coeff_div_year$ICESCODE=="VIIg" & coeff_div_year$Year==input$slideryear1), "t0"][[1]]),2))
-        predlengthVIIjYear= data.frame(Data= paste(input$slideryear, "VIIj Division", sep = " "),
-                                       'Predicted Age' = round(ageTyp(input$length,
-                                  Linf= coeff_div_year[which(coeff_div_year$ICESCODE=="VIIj" & coeff_div_year$Year==input$slideryear1), "Linf"][[1]],
-                                  K=coeff_div_year[which(coeff_div_year$ICESCODE=="VIIj" & coeff_div_year$Year==input$slideryear1), "K"][[1]],
-                                  t0=coeff_div_year[which(coeff_div_year$ICESCODE=="VIIj" & coeff_div_year$Year==input$slideryear1), "t0"][[1]]),2))
-        predlengthVIIkYear= data.frame(Data= paste(input$slideryear, "VIIk Division", sep = " "),
-                                       'Predicted Age' = round(ageTyp(input$length,
-                                  Linf= coeff_div_year[which(coeff_div_year$ICESCODE=="VIIk" & coeff_div_year$Year==input$slideryear1 ), "Linf"][[1]],
-                                  K=coeff_div_year[which(coeff_div_year$ICESCODE=="VIIk" & coeff_div_year$Year==input$slideryear1), "K"][[1]],
-                                  t0=coeff_div_year[which(coeff_div_year$ICESCODE=="VIIk" & coeff_div_year$Year==input$slideryear1), "t0"][[1]]),2))
-        rbind(predlengthVIaYear, predlengthVIIbYear, predlengthVIIcYear, predlengthVIIgYear, predlengthVIIjYear, predlengthVIIkYear)
-        
-        }
-    })
+ 
+ 
+
   
   output$latab=renderUI({
     if(dim(LengthWeightAgeSpA1())[1]==0){
@@ -924,19 +941,20 @@ shinyServer(function(input, output) {
     }else{
       list(
         plotlyOutput("laplot"),
-        fluidRow(column(6,h3("Life Parameters"),
-                        tableOutput("coeff_table"))#,
-                 #column(3,numericInput("age", "Fish Age:", value=0, min = 0, max = 10),
-                 #       HTML("<b>Predicted Length:</b>"),
-                 #       textOutput("predlength")),
-                 #column(6, h3("Predictions using VBGM"),
-                 #       numericInput("length", "Enter Fish length:", value=30, min = 10, max = 80),
-                        #HTML("<b>Predicted Age:</b>"),
-                 #       tableOutput("predage"))
-                 ),
+        fluidRow(column(5,h4("Life Parameters"),
+                        tableOutput("coeff_table"),offset = 3))
+                # ,
+                # column(3,h4("Predictions using VBGM"),
+                                ##### numericInput("length", "Enter Fish length:", value=30, min = 10, max = 80),
+                               ## tableOutput("predage"),
+                               #tableOutput("probofage")) ,
+        ####tags$small("*age range based on age readings and lengths 
+                                                  # taken from fish sampled at ports and the stockbook"),
+                        ## plotOutput("age_hist"))
+        ,
         "Data fits are modelled using Von Bertalanffy Growth Models",HTML("<br>"),
         "If data fits are missing this is due to either no data available or small sample sizes",HTML("<br>"),
-        "*Filtering also available through the legend on the RHS when a parameter is chosen")
+        "*Filtering also available on the RHS by clicking on the legend entry when a parameter is chosen")
     }
   })
   
@@ -978,7 +996,7 @@ shinyServer(function(input, output) {
   
   LWAcohort=reactive({
     if(is.null(input$slideryear1)){
-      filter(LengthWeightAge, age!="NA" & Cohort == 2017)
+      filter(LengthWeightAge, age!="NA" & Cohort == maxyear)
     }else{
       filter(LengthWeightAge, age!="NA" & Cohort == input$slideryear1)}
   })
@@ -1009,9 +1027,9 @@ shinyServer(function(input, output) {
                             range = c(0, max(LengthWeightAgeSpA1()$length, na.rm = T)*1.05)),
                margin=(list(t=70)), showlegend = TRUE)
       if(dim(predictedcohort)[1]>0){
-      p=p %>%
-        add_trace(data=predictedcohort, x = ~age, y = ~predlengthCohort, type="scatter", mode = "lines",
-                  line = list(shape="spline", color="#1f77b4"), name=paste0(input$slideryear1, " data fit"), hoverinfo="none")
+        p=p %>%
+          add_trace(data=predictedcohort, x = ~age, y = ~predlengthCohort, type="scatter", mode = "lines",
+                    line = list(shape="spline", color="blue"), name=paste0(input$slideryear1, " data fit"), hoverinfo="none")
       }
       p$elementId <- NULL
     }else if(input$parameter=="Sex"){
@@ -1028,10 +1046,10 @@ shinyServer(function(input, output) {
                                  predlengthMYear= vbTyp(x, Linf=exp(coeff_sex_cohort[which(coeff_sex_cohort$Parameter =="lnlinf" & coeff_sex_cohort$Cohort==input$slideryear1), "Male"]),
                                                         K=exp(coeff_sex_cohort[which(coeff_sex_cohort$Parameter =="lnk"& coeff_sex_cohort$Cohort==input$slideryear1), "Male"]), 
                                                         t0=-exp(coeff_sex_cohort[which(coeff_sex_cohort$Parameter =="lnnt0"& coeff_sex_cohort$Cohort==input$slideryear1), "Male"])))
-
+      
       p=plot_ly() %>% 
         add_trace(data=LWA_fish, x = ~age, y = ~length, type="scatter", mode="markers",
-                  color = ~obs.sex, colors=c('unclassified'='#999999','male'='#6699ff','female'='#ff66cc'),
+                  color = ~obs.sex, colors=c('U'='#F8766D','F'='#00BFC4','M'='#B79F00'),
                   text=~paste("Length:",length,"cm","<br>Age:",age, "<br>Sex:", obs.sex),
                   hoverinfo = 'text',marker =list(opacity = 0.5), showlegend = TRUE) %>% 
         layout(hovermode="closest", title=paste("Length vs Age (points coloured by sex)"),
@@ -1043,12 +1061,12 @@ shinyServer(function(input, output) {
       if(all(!is.na(predictedcohort$predlengthFYear))){
         p = p %>%
           add_trace(data=predictedcohort, x = ~age, y = ~predlengthFYear, type="scatter", mode = "lines",
-                    line = list(shape="spline", color="#ff66cc"), name="Females", hoverinfo="none")
+                    line = list(shape="spline", color="#00BFC4"), name="F", hoverinfo="none")
       }
       if(all(!is.na(predictedcohort$predlengthMYear))){
         p = p %>%
           add_trace(data=predictedcohort, x = ~age, y = ~predlengthMYear, type="scatter", mode = "lines",
-                    line = list(shape="spline", color="#6699ff"), name="Males", hoverinfo="none")
+                    line = list(shape="spline", color="#B79F00"), name="M", hoverinfo="none")
       }
       
       
@@ -1056,9 +1074,9 @@ shinyServer(function(input, output) {
     }else if(input$parameter=="Gear"){
       predictedcohort=data.frame(age=x, predlengthAll= vbTyp(x, Linf=coeff_all[[1]], K=coeff_all[[2]], t0=coeff_all[[3]]),
                                  predlengthCohortA= vbTyp(x, 
-                                                         Linf= coeff_gear_cohort[which(coeff_gear_cohort$Cohort==input$slideryear1 & coeff_gear_cohort$Gear=="GOV 3647 Groundgear A"), "Linf"],
-                                                         K=coeff_gear_cohort[which(coeff_gear_cohort$Cohort==input$slideryear1 & coeff_gear_cohort$Gear=="GOV 3647 Groundgear A"), "K"], 
-                                                         t0=coeff_gear_cohort[which(coeff_gear_cohort$Cohort==input$slideryear1 & coeff_gear_cohort$Gear=="GOV 3647 Groundgear A"), "t0"]),
+                                                          Linf= coeff_gear_cohort[which(coeff_gear_cohort$Cohort==input$slideryear1 & coeff_gear_cohort$Gear=="GOV 3647 Groundgear A"), "Linf"],
+                                                          K=coeff_gear_cohort[which(coeff_gear_cohort$Cohort==input$slideryear1 & coeff_gear_cohort$Gear=="GOV 3647 Groundgear A"), "K"], 
+                                                          t0=coeff_gear_cohort[which(coeff_gear_cohort$Cohort==input$slideryear1 & coeff_gear_cohort$Gear=="GOV 3647 Groundgear A"), "t0"]),
                                  predlengthCohortD= vbTyp(x, 
                                                           Linf= coeff_gear_cohort[which(coeff_gear_cohort$Cohort==input$slideryear1 & coeff_gear_cohort$Gear=="GOV 3647 Groundgear D"), "Linf"],
                                                           K=coeff_gear_cohort[which(coeff_gear_cohort$Cohort==input$slideryear1 & coeff_gear_cohort$Gear=="GOV 3647 Groundgear D"), "K"], 
@@ -1066,7 +1084,7 @@ shinyServer(function(input, output) {
       
       p=plot_ly() %>% 
         add_trace(data=LWA_fish, x = ~age, y = ~length, type="scatter", mode="markers",
-                  color = ~fldGearDescription, colors=c("#132B43", "#56B1F7"),
+                  color = ~fldGearDescription, colors=c("#F8766D","#00BFC4"),
                   text=~paste("Length:",length,"cm","<br>Age:",age, "<br>Gear type:",fldGearDescription),
                   hoverinfo = 'text',marker =list(opacity = 0.5), showlegend = TRUE) %>% 
         layout(hovermode="closest", title=paste("Length vs Age (points coloured by gear)"),
@@ -1077,12 +1095,12 @@ shinyServer(function(input, output) {
       if(all(!is.na(predictedcohort$predlengthCohortA))){
         p = p %>%
           add_trace(data=predictedcohort, x = ~age, y = ~predlengthCohortA, type="scatter", mode = "lines",
-                    line = list(shape="spline", color="#132B43"), name="GOV 3647 Groundgear A", hoverinfo="none")
+                    line = list(shape="spline", color="#F8766D"), name="GOV 3647 Groundgear A", hoverinfo="none")
       }
       if(all(!is.na(predictedcohort$predlengthCohortD))){
         p = p %>%
           add_trace(data=predictedcohort, x = ~age, y = ~predlengthCohortD, type="scatter", mode = "lines",
-                    line = list(shape="spline", color="#56B1F7"), name="GOV 3647 Groundgear D", hoverinfo="none")
+                    line = list(shape="spline", color="#00BFC4"), name="GOV 3647 Groundgear D", hoverinfo="none")
       }
       p$elementId <- NULL
     }else if(input$parameter=="Division"){
@@ -1111,7 +1129,7 @@ shinyServer(function(input, output) {
                                                            Linf= coeff_div_cohort[which(coeff_div_cohort$ICESCODE=="VIIk" & coeff_div_cohort$Cohort==input$slideryear1 ), "Linf"],
                                                            K=coeff_div_cohort[which(coeff_div_cohort$ICESCODE=="VIIk" & coeff_div_cohort$Cohort==input$slideryear1), "K"],
                                                            t0=coeff_div_cohort[which(coeff_div_cohort$ICESCODE=="VIIk" & coeff_div_cohort$Cohort==input$slideryear1), "t0"]))
-
+      
       if(is.null(input$division1)){
         ## "Select a Division"
         p=NULL
@@ -1123,7 +1141,7 @@ shinyServer(function(input, output) {
           
           p=plot_ly() %>% 
             add_trace(data=grspnew.w2, x = ~age, y = ~length, type="scatter", mode="markers",color= ~ICESCODE,
-                      colors=c('VIa'='#8DD3C7','VIIb'='#FDB462','VIIc'='#BEBADA','VIIg'='#FB8072','VIIj'='#80B1D3','VIIk'='#FFFFB3'),
+                      colors=c('VIa'='#F8766D','VIIb'='#00BFC4','VIIc'='#B79F00','VIIg'='#619CFF','VIIj'='#00BA38','VIIk'='#F564E3'),
                       text=~paste("Length:",length,"cm","<br>Age:",age, "<br>Division:",ICESCODE),
                       hoverinfo = 'text',marker =list(opacity = 0.5), showlegend = TRUE) %>% 
             layout(hovermode="closest", title=paste("Age vs Length (points coloured by divisions)"),
@@ -1134,22 +1152,22 @@ shinyServer(function(input, output) {
           
           if(all(!is.na(predictedcohort$predlengthVIaYear)) & "VIa" %in% input$division1 ){
             p=p %>% add_trace(data=predictedcohort, x = ~age, y = ~predlengthVIaYear, type="scatter", mode = "lines",
-                              line = list(shape="spline", color='#8DD3C7'), name=paste(input$slideryear1,"VIa data fit"), hoverinfo="none")}  
+                              line = list(shape="spline", color='#F8766D'), name=paste(input$slideryear1,"VIa data fit"), hoverinfo="none")}  
           if(all(!is.na(predictedcohort$predlengthVIIbYear))& "VIIb" %in% input$division1 ){
             p=p %>% add_trace(data=predictedcohort, x = ~age, y = ~predlengthVIIbYear, type="scatter", mode = "lines",
-                              line = list(shape="spline", color='#FDB462'), name=paste(input$slideryear1,"VIIb data fit"), hoverinfo="none")}  
+                              line = list(shape="spline", color='#00BFC4'), name=paste(input$slideryear1,"VIIb data fit"), hoverinfo="none")}  
           if(all(!is.na(predictedcohort$predlengthVIIcYear))& "VIIc" %in% input$division1 ){
             p=p %>% add_trace(data=predictedcohort, x = ~age, y = ~predlengthVIIcYear, type="scatter", mode = "lines",
-                              line = list(shape="spline", color='#BEBADA'), name=paste(input$slideryear1,"VIIc data fit"), hoverinfo="none")}  
+                              line = list(shape="spline", color='#B79F00'), name=paste(input$slideryear1,"VIIc data fit"), hoverinfo="none")}  
           if(all(!is.na(predictedcohort$predlengthVIIgYear))& "VIIg" %in% input$division1 ){
             p=p %>% add_trace(data=predictedcohort, x = ~age, y = ~predlengthVIIgYear, type="scatter", mode = "lines",
-                              line = list(shape="spline", color='#FB8072'), name=paste(input$slideryear1,"VIIg data fit"), hoverinfo="none")}  
+                              line = list(shape="spline", color='#619CFF'), name=paste(input$slideryear1,"VIIg data fit"), hoverinfo="none")}  
           if(all(!is.na(predictedcohort$predlengthVIIjYear))& "VIIj" %in% input$division1 ){
             p=p %>% add_trace(data=predictedcohort, x = ~age, y = ~predlengthVIIjYear, type="scatter", mode = "lines",
-                              line = list(shape="spline", color='#80B1D3'), name=paste(input$slideryear1,"VIIj data fit"), hoverinfo="none")}  
+                              line = list(shape="spline", color='#00BA38'), name=paste(input$slideryear1,"VIIj data fit"), hoverinfo="none")}  
           if(all(!is.na(predictedcohort$predlengthVIIkYear))& "VIIk" %in% input$division1 ){
             p=p %>% add_trace(data=predictedcohort, x = ~age, y = ~predlengthVIIkYear, type="scatter", mode = "lines",
-                              line = list(shape="spline", color='#FFFFB3'), name=paste(input$slideryear1,"VIIk data fit"), hoverinfo="none")}  
+                              line = list(shape="spline", color='#F564E3'), name=paste(input$slideryear1,"VIIk data fit"), hoverinfo="none")}  
           
           
           p$elementId <- NULL
@@ -1167,12 +1185,411 @@ shinyServer(function(input, output) {
     }else{
       list(
         plotlyOutput("cohortplot"),
-        h2("Life Parameters"),
-        tableOutput("coeff_table_cohort"),
+        fluidRow(column(5,h4("Life Parameters"),
+                        tableOutput("coeff_table_cohort"),offset = 3)),
+        
         "Data fits are modelled using Von Bertalanffy Growth Models",HTML("<br>"),
         "If data fits are missing this is due to either no data available or small sample sizes",HTML("<br>"),
-        "*Filtering also available through the legend on the RHS when a parameter is chosen")
+        "*Filtering also available on the RHS by clicking on the legend entry when a parameter is chosen")
+    }
+  })
+ 
+
+  
+  
+  
+  
+  
+  #####Prediction###### 
+  
+  
+  
+  LengthWeightAgeSpa=reactive({
+    if(is.null(input$slideryear2)){
+      filter(LengthWeightAge2, age!="NA"  & Year == maxyear)
+    }else{
+      filter(LengthWeightAge2, age!="NA"  & Year == input$slideryear2)}
+  })
+  
+  LengthWeightAgeSpa1=reactive({
+    filter(LengthWeightAge2, age!="NA" )
+  })
+ 
+  
+  
+  
+  
+  #output$predlength=reactive({
+   # round(vbTyp(input$age, 
+               # Linf= coeff_year[which(coeff_year$Year==input$slideryear2), "Linf"],
+               # K=coeff_year[which(coeff_year$Year==input$slideryear2), "K"], 
+                #t0=coeff_year[which(coeff_year$Year==input$slideryear2), "t0"]),2)
+ # })
+  output$predlength=renderTable({
+    if(input$parameterP=="None"){
+      dataAll= data.frame(Data= "All Data",
+                          'Predicted Length' = round(vbTyp(input$age, 
+                                                         Linf=coeff_all[[1]], K=coeff_all[[2]], t0=coeff_all[[3]]),2))
+      dataYear= data.frame(Data= paste(input$slideryear2, "data", sep = " "),
+                           'Predicted Length' = round(vbTyp(input$age, 
+                                                          Linf= coeff_year[which(coeff_year$Year==input$slideryear2), "Linf"],
+                                                          K=coeff_year[which(coeff_year$Year==input$slideryear2), "K"], 
+                                                          t0=coeff_year[which(coeff_year$Year==input$slideryear2), "t0"]),2))
+      rbind(dataAll,dataYear)
+    }else if(input$parameterP=="Gear"){
+      
+      predageGearA= data.frame(Data= "All Data Groundgear A",
+                                  'Predicted Length' = round(vbTyp(input$age, 
+                                                                 Linf= coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "Linf"],
+                                                                 K=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "K"],
+                                                                 t0=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "t0"]),2))
+      
+      
+      predageGearAyear= data.frame(Data= paste(input$slideryear2, "Groundgear A", sep = " "),
+                                      'Predicted Length' = round(vbTyp(input$age, 
+                                                                     Linf=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear2), "Linf"],
+                                                                     K=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear2), "K"],
+                                                                     t0=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear2), "t0"]),2))
+      
+      
+      predageGearD= data.frame(Data= "All Data Groundgear D",
+                               'Predicted Length' = round(vbTyp(input$age, 
+                                                                 Linf= coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear D"), "Linf"],
+                                                                 K=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear D"), "K"],
+                                                                 t0=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear D"), "t0"]),2))
+      
+      
+      predageGearDyear= data.frame(Data= paste(input$slideryear2, " Groundgear D", sep = " "),
+                                      'Predicted Length' = round(vbTyp(input$age, 
+                                                                     Linf=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear D" & coeff_gear_year$Year==input$slideryear2), "Linf"],
+                                                                     K=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear D" & coeff_gear_year$Year==input$slideryear2), "K"],
+                                                                     t0=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear D" & coeff_gear_year$Year==input$slideryear2), "t0"]),2))
+      rbind(predageGearA,predageGearAyear,predageGearD, predageGearDyear)
+    }else if(input$parameterP=="Sex"){
+      predageF= data.frame(Data= "All Female Data",
+                              'Predicted Length' = round(vbTyp(input$age, Linf=exp(coeff_sex[which(coeff_sex$Parameter =="lnlinf"), "Female"]),
+                                                             K=exp(coeff_sex[which(coeff_sex$Parameter =="lnk"), "Female"]), 
+                                                             t0=-exp(coeff_sex[which(coeff_sex$Parameter =="lnnt0"), "Female"])),2))
+      
+      predageFYear= data.frame(Data= paste(input$slideryear2, "Female ", sep = " "),
+                                  'Predicted Length' = round(vbTyp(input$age, 
+                                                                 Linf=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnlinf" & coeff_sex_year$Year==input$slideryear2), "Female"]),
+                                                                 K=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnk"& coeff_sex_year$Year==input$slideryear2), "Female"]), 
+                                                                 t0=-exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnnt0"& coeff_sex_year$Year==input$slideryear2), "Female"])),2))
+      predageM= data.frame(Data= "All Male Data",
+                              'Predicted Length' = round(vbTyp(input$age, Linf=exp(coeff_sex[which(coeff_sex$Parameter =="lnlinf"), "Male"]),
+                                                               K=exp(coeff_sex[which(coeff_sex$Parameter =="lnk"), "Male"]), 
+                                                               t0=-exp(coeff_sex[which(coeff_sex$Parameter =="lnnt0"), "Male"])),2))
+      predageMYear= data.frame(Data= paste(input$slideryear2, "Male ", sep = " "),
+                                  'Predicted Length' = round(vbTyp(input$age, Linf=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnlinf" & coeff_sex_year$Year==input$slideryear2), "Male"]),
+                                                                 K=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnk"& coeff_sex_year$Year==input$slideryear2), "Male"]), 
+                                                                 t0=-exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnnt0"& coeff_sex_year$Year==input$slideryear2), "Male"])),2))
+      rbind(predageF, predageFYear,predageM, predageMYear)
+    }else if(input$parameterP=="Area"){
+      predageVI= data.frame(Data= "All VI Data ",
+                               'Predicted Length' = round(vbTyp(input$age, 
+                                                              Linf= coeff_area[which(coeff_area$Area =="VI"), "Linf"],
+                                                              K=coeff_area[which(coeff_area$Area=="VI"), "K"],
+                                                              t0=coeff_area[which(coeff_area$Area =="VI"), "t0"]),2))
+      
+      predageVIyear= data.frame(Data= paste(input$slideryear2, "VI", sep = " "),
+                                   'Predicted Length' = round(vbTyp(input$age, 
+                                                                    Linf=coeff_area_year[which(coeff_area_year$Area =="VI" & coeff_area_year$Year==input$slideryear2), "Linf"],
+                                                                    K=coeff_area_year[which(coeff_area_year$Area =="VI" & coeff_area_year$Year==input$slideryear2), "K"],
+                                                                    t0=coeff_area_year[which(coeff_area_year$Area =="VI" & coeff_area_year$Year==input$slideryear2), "t0"]),2))
+      predageVII= data.frame(Data= "All VII Data ",
+                            'Predicted Length' = round(vbTyp(input$age, 
+                                                          Linf= coeff_area[which(coeff_area$Area =="VII"), "Linf"],
+                                                          K=coeff_area[which(coeff_area$Area=="VII"), "K"],
+                                                          t0=coeff_area[which(coeff_area$Area =="VII"), "t0"]),2))
+      predageVIIyear= data.frame(Data= paste(input$slideryear2, "VII", sep = " "),
+                                'Predicted Length' = round(vbTyp(input$age, 
+                                                                 Linf=coeff_area_year[which(coeff_area_year$Area =="VII" & coeff_area_year$Year==input$slideryear2), "Linf"],
+                                                                 K=coeff_area_year[which(coeff_area_year$Area =="VII" & coeff_area_year$Year==input$slideryear2), "K"],
+                                                                 t0=coeff_area_year[which(coeff_area_year$Area =="VII" & coeff_area_year$Year==input$slideryear2), "t0"]),2))
+      rbind(predageVI, predageVIyear,predageVII, predageVIIyear)
+    
+      }
+  })
+  
+  output$predage=renderTable({
+    if(input$parameterP=="None"){
+    
+     dataAll= data.frame(Data= "All Data",
+                          'Predicted Age' = round(ageTyp(input$length, 
+                                                         Linf=coeff_all[[1]], K=coeff_all[[2]], t0=coeff_all[[3]]),2))
+      
+      dataYear= data.frame(Data= paste(input$slideryear2, "data", sep = " "),
+                           'Predicted Age' = round(ageTyp(input$length, 
+                                                          Linf= coeff_year[which(coeff_year$Year==input$slideryear2), "Linf"],
+                                                          K=coeff_year[which(coeff_year$Year==input$slideryear2), "K"], 
+                                                          t0=coeff_year[which(coeff_year$Year==input$slideryear2), "t0"]),2))
+      rbind(dataAll,dataYear)
+    }else if(input$parameterP=="Gear"){
+      predlengthGearA= data.frame(Data= "All Data Groundgear A",
+                                  'Predicted Age' = round(ageTyp(input$length, 
+                                                                 Linf= coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "Linf"],
+                                                                 K=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "K"],
+                                                                 t0=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear A"), "t0"]),2))
+      
+      predlengthGearAyear= data.frame(Data= paste(input$slideryear2, "Groundgear A", sep = " "),
+                                      'Predicted Age' = round(ageTyp(input$length, 
+                                                                     Linf=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear2), "Linf"],
+                                                                     K=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear2), "K"],
+                                                                     t0=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear A" & coeff_gear_year$Year==input$slideryear2), "t0"]),2))
+      predlengthGearD= data.frame(Data= "All Data Groundgear D",
+                                  'Predicted Age' = round(ageTyp(input$length, 
+                                                                 Linf= coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear D"), "Linf"],
+                                                                 K=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear D"), "K"],
+                                                                 t0=coeff_gear[which(coeff_gear$Gear =="GOV 3647 Groundgear D"), "t0"]),2))
+      predlengthGearDyear= data.frame(Data= paste(input$slideryear2, " Groundgear D", sep = " "),
+                                      'Predicted Age' = round(ageTyp(input$length, 
+                                                                     Linf=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear D" & coeff_gear_year$Year==input$slideryear2), "Linf"],
+                                                                     K=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear D" & coeff_gear_year$Year==input$slideryear2), "K"],
+                                                                     t0=coeff_gear_year[which(coeff_gear_year$Gear =="GOV 3647 Groundgear D" & coeff_gear_year$Year==input$slideryear2), "t0"]),2))
+      rbind(predlengthGearA,predlengthGearAyear,predlengthGearD, predlengthGearDyear)
+    }else if(input$parameterP=="Sex"){
+      
+      predlengthF= data.frame(Data= "All Female Data",
+                              'Predicted Age' = round(ageTyp(input$length, Linf=exp(coeff_sex[which(coeff_sex$Parameter =="lnlinf"), "Female"]),
+                                                             K=exp(coeff_sex[which(coeff_sex$Parameter =="lnk"), "Female"]), 
+                                                             t0=-exp(coeff_sex[which(coeff_sex$Parameter =="lnnt0"), "Female"])),2))
+      predlengthFYear= data.frame(Data= paste(input$slideryear2, "Female ", sep = " "),
+                                  'Predicted Age' = round(ageTyp(input$length, 
+                                                                 Linf=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnlinf" & coeff_sex_year$Year==input$slideryear2), "Female"]),
+                                                                 K=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnk"& coeff_sex_year$Year==input$slideryear2), "Female"]), 
+        
+                                                                                                                          t0=-exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnnt0"& coeff_sex_year$Year==input$slideryear2), "Female"])),2))
+      
+      predlengthM= data.frame(Data= "All Male Data",
+                              'Predicted Age' = round(ageTyp(input$length, Linf=exp(coeff_sex[which(coeff_sex$Parameter =="lnlinf"), "Male"]),
+                                                             K=exp(coeff_sex[which(coeff_sex$Parameter =="lnk"), "Male"]), 
+                                                             t0=-exp(coeff_sex[which(coeff_sex$Parameter =="lnnt0"), "Male"])),2))
+      predlengthMYear= data.frame(Data= paste(input$slideryear2, "Male ", sep = " "),
+                                  'Predicted Age' = round(ageTyp(input$length, Linf=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnlinf" & coeff_sex_year$Year==input$slideryear2), "Male"]),
+                                                                 K=exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnk"& coeff_sex_year$Year==input$slideryear2), "Male"]), 
+                                                                 t0=-exp(coeff_sex_year[which(coeff_sex_year$Parameter =="lnnt0"& coeff_sex_year$Year==input$slideryear2), "Male"])),2))
+      rbind(predlengthF, predlengthFYear,predlengthM, predlengthMYear)
+    }else if(input$parameterP=="Area"){
+      predlengthVI= data.frame(Data= "All VI Data ",
+                                  'Predicted Age' = round(ageTyp(input$length, 
+                                                                 Linf= coeff_area[which(coeff_area$Area =="VI"), "Linf"],
+                                                                 K=coeff_area[which(coeff_area$Area=="VI"), "K"],
+                                                                 t0=coeff_area[which(coeff_area$Area =="VI"), "t0"]),2))
+      
+      predlengthVIyear= data.frame(Data= paste(input$slideryear2, "VI", sep = " "),
+                                      'Predicted Age' = round(ageTyp(input$length, 
+                                                                     Linf=coeff_area_year[which(coeff_area_year$Area =="VI" & coeff_area_year$Year==input$slideryear2), "Linf"],
+                                                                     K=coeff_area_year[which(coeff_area_year$Area =="VI" & coeff_area_year$Year==input$slideryear2), "K"],
+                                                                     t0=coeff_area_year[which(coeff_area_year$Area =="VI" & coeff_area_year$Year==input$slideryear2), "t0"]),2))
+      predlengthVII= data.frame(Data= "All VII Data ",
+                               'Predicted Age' = round(ageTyp(input$length, 
+                                                              Linf= coeff_area[which(coeff_area$Area =="VII"), "Linf"],
+                                                              K=coeff_area[which(coeff_area$Area=="VII"), "K"],
+                                                              t0=coeff_area[which(coeff_area$Area =="VII"), "t0"]),2))
+      
+      predlengthVIIyear= data.frame(Data= paste(input$slideryear2, "VII", sep = " "),
+                                   'Predicted Age' = round(ageTyp(input$length, 
+                                                                  Linf=coeff_area_year[which(coeff_area_year$Area =="VII" & coeff_area_year$Year==input$slideryear2), "Linf"],
+                                                                  K=coeff_area_year[which(coeff_area_year$Area =="VII" & coeff_area_year$Year==input$slideryear2), "K"],
+                                                                  t0=coeff_area_year[which(coeff_area_year$Area =="VII" & coeff_area_year$Year==input$slideryear2), "t0"]),2))
+      rbind(predlengthVI,predlengthVIyear,predlengthVII, predlengthVIIyear)
+     
+      
     }
   })
   
+  x3y<-reactive({LengthWeightAge2$age[which(LengthWeightAge2$length== (input$length+0.5))]})
+  x4y<-reactive({LengthWeightAge2$obs.sex[which(LengthWeightAge2$length== (input$length+0.5))]})
+  x5y<-reactive({LengthWeightAge2$fldGearDescription[which(LengthWeightAge2$length== (input$length+0.5))]})
+  
+  x6y<-reactive({LengthWeightAge2$AreaByICESCODE[which(LengthWeightAge2$length== (input$length+0.5))]})
+  
+  
+  x3<-reactive({LengthWeightAge2$age[which(LengthWeightAge2$length== (input$length+0.5)& LengthWeightAge2$Year == input$slideryear2)]})
+  x4<-reactive({LengthWeightAge2$obs.sex[which(LengthWeightAge2$length== (input$length+0.5)& LengthWeightAge2$Year == input$slideryear2)]})
+  x5<-reactive({LengthWeightAge2$fldGearDescription[which(LengthWeightAge2$length== (input$length+0.5)& LengthWeightAge2$Year == input$slideryear2)]})
+  
+  x6<-reactive({LengthWeightAge2$AreaByICESCODE[which(LengthWeightAge2$length== (input$length+0.5)& LengthWeightAge2$Year == input$slideryear2)]})
+  
+  output$agerange <- reactive({
+  
+   
+      if (length(x3y())<3) {
+        paste("No individuals of this length recorded",sep="")
+      }else{ 
+        paste(min(x3y(), na.rm=TRUE),"to", max(x3y(), na.rm=TRUE), "years,", "n = ",length(x3y()), sep=" ")}
+       })
+  
+ 
+  
+
+
+  output$mode <- reactive({
+    if (length(x3y())<3) {
+      paste("No records",sep="")
+    }
+    else{data<-data.frame(x3y(),x4y(),x5y(),x6y())
+    names(data)=c("Age", "Sex","Gear","Area")
+    if(input$parameterP=="None"){
+    paste(Mode(x3y()), sep=" ")}
+    else if(input$parameterP=="Sex"){
+      dataF<-filter(data,Sex=="F")
+      dataM<-filter(data,Sex=="M")
+      dataU<-filter(data,Sex=="U")
+      paste("F:",Mode(dataF$Age),"M:",Mode(dataM$Age),"U:",Mode(dataU$Age))
+      
+  
+      
+      
+    }
+    else if(input$parameterP=="Gear"){
+      dataA<-filter(data,Gear=="GOV 3647 Groundgear A")
+      dataD<-filter(data,Gear=="GOV 3647 Groundgear D")
+      paste("Gear A:",Mode(dataA$Age),"Gear D:",Mode(dataD$Age))
+    }
+    
+    else if(input$parameterP=="Area"){
+      dataVI<-filter(data,Area=="VI")
+      dataVII<-filter(data,Area=="VII")
+      paste("Area VI:",Mode(dataVI$Age),"Area VII:",Mode(dataVII$Age))
+    }
+    }
   })
+  
+  output$probofage = renderTable({
+    if (length(x3())<3) {
+      paste("No records",sep="")
+    }
+    else{
+    if(input$parameterP=="None"){
+   # percentagesatage=data.frame(table(x1())/length(x1())*100)
+      percentagesatage=data.frame(table(x3())/length(x3())*100)
+    names(percentagesatage)=c("Age", "% at Age")
+    percentagesatage}
+    else if(input$parameterP=="Sex"){
+      
+      #percentagesatageS=data.frame(table(x1(),x2())/length(x1())*100)
+      percentagesatageS=data.frame(table(x3(),x4())/length(x3())*100)
+      percentagesatageS<-percentagesatageS[order(percentagesatageS$Var1),]
+      names(percentagesatageS)=c("Age", "Sex", "% at Age")
+      percentagesatageS}
+    else if(input$parameterP=="Gear"){
+      
+      #percentagesatageS=data.frame(table(x1(),x2())/length(x1())*100)
+      percentagesatageG=data.frame(table(x3(),x5())/length(x3())*100)
+      percentagesatageG<-percentagesatageG[order(percentagesatageG$Var1),]
+      names(percentagesatageG)=c("Age", "Gear", "% at Age")
+      percentagesatageG}
+    else if(input$parameterP=="Area"){
+      
+      #percentagesatageS=data.frame(table(x1(),x2())/length(x1())*100)
+      percentagesatageA=data.frame(table(x3(),x6())/length(x3())*100)
+      percentagesatageA<-percentagesatageA[order(percentagesatageA$Var1),]
+      names(percentagesatageA)=c("Age", "Area", "% at Age")
+      percentagesatageA}}
+    
+  })
+  
+  
+  
+  ##### Histogram #######
+  #observeEvent(input$showhist, {
+  #y1 <- reactive({cc.age$AgeContin[which(cc.age$Species==paste(input$species) & cc.age$Length== paste(input$lengthcm))]})
+  #data<-data.frame(x1(),x2())
+  
+  output$age_hist <- renderPlot({
+    data<-data.frame(x3y(),x4y(),x5y(),x6y())
+    names(data)=c("Age", "Sex","Gear","Area")
+    
+    if (length(x3y())<3){p=NULL}
+
+   
+   else if(input$parameterP=="None"){
+    
+     #qplot(x3()[3], geom="histogram",main='Histogram of observered ages',xlab= 'Age',  binwidth = 1, xlim=c(0,13),
+            
+            #fill=I("blue"), 
+             # col=I("red"))
+    
+    p<- ggplot(data, aes(x=Age))+ geom_histogram(color="red", fill="grey",binwidth = 1)+labs(title="Histogram of observered ages",x="Age")#+scale_x_continuous(limits = c(0, 13))
+    #ggplotly(p)
+    p
+    }
+    
+    else if(input$parameterP=="Sex"){
+      
+    
+      
+      p<-ggplot(data, aes(x=Age,fill=Sex,color=Sex))+ geom_histogram(binwidth = 1)+labs(title="Histogram of observered ages coloured by sex",x="Age")+scale_fill_manual(values=c("U"="#F8766D","F"="#00BFC4","M"="#B79F00"))
+      p
+      #ggplot(data, aes(x=Age))+ geom_histogram(color="red", fill="grey",binwidth = 1)+labs(title="Histogram of observered ages by sex",x="Age")+ facet_grid(. ~ Sex)
+      #ggplotly(p)
+    }
+    else if(input$parameterP=="Gear"){
+      
+     
+      
+     p<- ggplot(data, aes(x=Age,fill=Gear,color=Gear))+ geom_histogram(binwidth = 1)+labs(title="Histogram of observered ages coloured by gear",x="Age")+scale_fill_manual(values=c("GOV 3647 Groundgear A"="#00BFC4","GOV 3647 Groundgear D"="#B79F00"))
+     p
+     #ggplotly(p)
+    }
+    
+    else if(input$parameterP=="Area"){
+      
+  
+      
+      p<-ggplot(data, aes(x=Age,fill=Area,color=Area))+ geom_histogram(binwidth = 1)+labs(title="Histogram of observered ages coloured by area",x="Age")+scale_fill_manual(values=c("VI"="#00BFC4","VII"="#B79F00"))
+      p
+     # ggplotly(p)
+      
+    }
+  })
+    
+   # hist(x1(),main='Histogram of observered ages',xlab= 'Age')
+ 
+  #  })
+  
+  len10<-round(as.numeric(quantile(LengthWeightAge2$length, prob = 0.1)))
+  
+  len95<-round(as.numeric(quantile(LengthWeightAge2$length, prob = 0.95)))
+  
+  age99<-round(as.numeric(quantile(LengthWeightAge2$age, prob = 0.99,na.rm=T)))
+  
+  output$pred=renderUI({
+    if(dim(LengthWeightAgeSpa1())[1]==0){
+      h3(paste("No Age data available for", species, sep=" "))
+    }else if(dim(LengthWeightAgeSpa())[1]==0){
+      h3(paste("No Age data available for", species, "for", input$slideryear2, ".Try another year", sep= " "))
+    }else{
+      list(
+        
+        fluidRow(
+          #column(6,h4("Life Parameters"),div(style = "height:120px;background-color: grey;", tableOutput("coeff_tableP")) )
+                # ,
+          column(4, h4("Predictions using VBGM"),
+                 wellPanel( numericInput("length", "Enter Fish length:", value= len10, min = len10, max =len95 ,step=1),
+                 HTML("<b>Predicted Age:</b>"),
+                 tableOutput("predage")
+                 ,HTML("<br>")),
+                 wellPanel(numericInput("age", "Enter Fish Age:", value=0, min = 0, max = age99),
+                 HTML("<b>Predicted Length:</b>"),
+                 tableOutput("predlength"))),
+          column(3,h4(paste("Age Observed for", input$slideryear2)),wellPanel(tableOutput("probofage")))
+               , 
+                 column(5, h4(paste("Predictions using mode for all years" )),
+                        wellPanel(tags$b("Age range observed*:"), h4(textOutput("agerange")),
+                        tags$b("Modal age is:"),h5(textOutput("mode")),
+                        tags$small("*age range based on age readings and lengths 
+                                   taken from fish sampled at ports and the stockbook")),
+                        #actionButton("showhist",label = "Show Histogram"), 
+                        plotOutput("age_hist"))
+                ))
+      
+    }
+ 
+})
+  
+
+}) 
+  
