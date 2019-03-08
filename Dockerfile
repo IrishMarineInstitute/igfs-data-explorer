@@ -36,6 +36,7 @@ COPY LSD /srv/shiny-server/LSD
 COPY MAC /srv/shiny-server/MAC
 COPY MEG /srv/shiny-server/MEG
 COPY MON /srv/shiny-server/MON
+COPY NOP /srv/shiny-server/NEP
 COPY NOP /srv/shiny-server/NOP
 COPY PLE /srv/shiny-server/PLE
 COPY POD /srv/shiny-server/POD
