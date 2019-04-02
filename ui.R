@@ -11,6 +11,8 @@ library(htmltools)
 library(shinycssloaders)
 sp_data_gp <- readRDS("Data/sp_data_gp_20190306.rds")
 
+myUrl <- "https://shiny.marine.ie"
+
 dashboardPage(
   dashboardHeader(disable = TRUE),
   dashboardSidebar(disable = TRUE),
@@ -45,7 +47,7 @@ dashboardPage(
       fluidRow(
         box(title = "Individual species", width = 3, status = "success",
             selectInput("spSelect","Select a species", 
-                        choices = list(Haddock = "https://shiny.marine.ie/igfshad/",
+                        choices = list(Haddock = paste(myUrl,"/igfshad/",sep=""),
                                        Whiting ="https://shiny.marine.ie/igfswhg/",
                                        Cod = "https://shiny.marine.ie/igfscod/",
                                        Hake = "https://shiny.marine.ie/igfshke/",
