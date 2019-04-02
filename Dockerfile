@@ -18,7 +18,7 @@ COPY app.js /srv/shiny-server/
 COPY google-analytics.js /srv/shiny-server/
 COPY README.md /srv/shiny-server/
 COPY server.R /srv/shiny-server/
-COPY ui.R /srv/shiny-server/
+
 #COPY igfs-data-explorer /srv/shiny-server/
 COPY BOF /srv/shiny-server/BOF
 COPY COD /srv/shiny-server/COD
@@ -57,6 +57,6 @@ RUN Rscript -e "install.packages(c('hexbin'), repos='https://cran.rstudio.com/')
 RUN Rscript -e "install.packages(c('data.table'), repos='https://cran.rstudio.com/')"
 RUN wget https://cran.r-project.org/src/contrib/Archive/plotly/plotly_4.7.1.tar.gz
 RUN R CMD INSTALL plotly_4.7.1.tar.gz
-
+COPY ui.R /srv/shiny-server/
 EXPOSE 3838
 CMD ["/usr/bin/shiny-server.sh"]
