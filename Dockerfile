@@ -57,7 +57,7 @@ COPY WAF /srv/shiny-server/apps/WAF
 COPY WHB /srv/shiny-server/apps/WHB
 COPY WHG /srv/shiny-server/apps/WHG
 COPY www /srv/shiny-server/www
-COPY shiny-server.conf /etc/shiny-server/
+#COPY shiny-server.conf /etc/shiny-server/
 COPY ui.R /srv/shiny-server/
 EXPOSE 3838
 CMD ["/usr/bin/shiny-server.sh"]
