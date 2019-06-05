@@ -60,4 +60,5 @@ COPY www /srv/shiny-server/igfs/www
 #COPY shiny-server.conf /etc/shiny-server/
 COPY ui.R /srv/shiny-server/igfs/
 EXPOSE 3838
+ENTRYPOINT [/srv/shiny-server/igfs/ui.R]
 CMD ["/usr/bin/shiny-server.sh"]
