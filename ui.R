@@ -11,7 +11,17 @@ library(htmltools)
 library(shinycssloaders)
 sp_data_gp <- readRDS("Data/sp_data_gp_20190306.rds")
 
-myUrl <- "https://shiny.marine.ie"
+args = commandArgs(trailingOnly=TRUE)
+
+if (length(args)==0) {
+  myUrl <- "https://shiny.marine.ie"
+}
+
+else {
+myurl <- args[1]
+}
+
+
 
 dashboardPage(
   dashboardHeader(disable = TRUE),
