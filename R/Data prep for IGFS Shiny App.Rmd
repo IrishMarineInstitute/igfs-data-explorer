@@ -24,51 +24,52 @@ library(tidyr)
 
 
 channel <- odbcDriverConnect("Driver=SQL Server; 
-                             Server=XXXX; Database=InformaticsLoad")
+                             Server=miprodsql-agl1; Database=FEAS_InformaticsLoad")
 
 ########Get Data from Informatics Load######
 
 data1<- sqlQuery(channel,"
 SELECT *
-FROM [InformaticsLoad].[dbo].[SurveyAbundanceAndDistribution]
-")
+FROM [dbo].[SurveyAbundanceAndDistribution]
+", stringsAsFactors = TRUE)
 
-summary(data1)
+#summary(data1)
 str(data1)
 
 
 dat<- sqlQuery(channel,"
 SELECT *
-FROM [InformaticsLoad].[dbo].[SurveyCatchRate]
-")
+FROM [dbo].[SurveyCatchRate]
+", stringsAsFactors = TRUE)
 
-summary(dat)
+#summary(dat)
 str(dat)
 
 
 
 LengthData<- sqlQuery(channel,"
 SELECT *
-FROM [InformaticsLoad].[dbo].[SurveyLenghtData]
-")
+FROM [dbo].[SurveyLenghtData]
+", stringsAsFactors = TRUE)
 
-summary(LengthData)
+#summary(LengthData)
 str(LengthData)
 
 LengthWeightAge<- sqlQuery(channel,"
 SELECT *
-FROM [InformaticsLoad].[dbo].[SurveyLenghtWeightAge]
-")
-summary(LengthWeightAge)
+FROM [dbo].[SurveyLenghtWeightAge]
+", stringsAsFactors = TRUE)
+
+#summary(LengthWeightAge)
 str(LengthWeightAge)
 
 stn<- sqlQuery(channel,"
 SELECT *
-FROM [InformaticsLoad].[dbo].[SurveyMI_Survey_Station_Data]
+FROM [dbo].[SurveyMI_Survey_Station_Data]
 WHERE fldcruisename like 'IGFS%'
-")
+", stringsAsFactors = TRUE)
 
-summary(stn)
+#summary(stn)
 str(stn)
 
 saveRDS(stn,"updatedData/stn.RDS")
@@ -83,7 +84,7 @@ close(channel)
 ## Getting ready NEP data
 
 ```{r NEP data}
-nep<-read.csv("gfs_nep_final_IBTS.csv")#.csv from L:\Surveys\IGFS\Nephrops
+nep<-read.csv("gfs_nep_final_IBTS.csv", stringsAsFactors = TRUE)#.csv from L:\Surveys\IGFS\Nephrops
 summary(nep)
 
 #join with stn data
@@ -379,7 +380,7 @@ library(lhmixr)
 library(tidyverse)
 LWA<-LengthWeightAge
 #coeff_Length_Age<-function(LWA){
-sp_names<-read.csv("Sp_names.csv")
+sp_names<-read.csv("Sp_names.csv", stringsAsFactors = TRUE)
 fish<-filter(sp_names,age=="yes")$speciesFAO
 fish<-droplevels(fish)
 LWA_missingremoved=filter(LWA, !is.na(age) & age>=0  & ICESCODE !="VIIa")
