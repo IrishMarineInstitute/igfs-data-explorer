@@ -22,9 +22,11 @@ library(tidyr)
 
 ```{r pulling data}
 
-
-channel <- odbcDriverConnect("Driver=SQL Server; 
-                             Server=miprodsql-agl1; Database=FEAS_InformaticsLoad")
+# Store the server and db names in a csv file (not on GitHub)
+myserverDBNames <- read.csv("serverDBNames.csv", stringsAsFactors = FALSE)
+myConnString <- paste0("Driver=SQL Server;Server=",myserverDBNames$server,";Database=",
+                       myserverDBNames$database)
+channel <- odbcDriverConnect(myConnString)
 
 ########Get Data from Informatics Load######
 
