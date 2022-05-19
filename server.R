@@ -652,7 +652,8 @@ output$abundanceplotall=renderPlotly({
   if(input$sp1=="Nephrops"){
     meanAll <- aggregate(N_FU()[,c("No_Km2")],by=list(N_FU()$Year),FUN=mean,  na.rm=TRUE)
     names(meanAll)=c("Year", "No_Km2")
-    p=ggplot(N_FU(), aes(x=Year, y=No_Km2)) + geom_jitter(width = 0.05, colour="grey") + 
+    #p=ggplot(N_FU(), aes(x=Year, y=No_Km2)) + geom_jitter(width = 0.05, colour="grey") + 
+    p=ggplot(N_FU(), aes(x=Year, y=No_Km2)) + geom_jitter(width = 0.05, colour="grey",aes(text=sprintf("Station: %s", Haul))) + 
       geom_line(data=meanAll, aes(x=Year, y =No_Km2), size=0.5)+ ylab("No/KM<sup>2</sup>") + facet_wrap(~Functional_Unit)+
       theme_bw()  + theme(legend.position = "none")+
       theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5,size=8))+
@@ -662,7 +663,8 @@ output$abundanceplotall=renderPlotly({
   #Order the data
   else{meanAll<-aggregate(data1S()[,c("catch_km2","No_km2")],by=list(data1S()$Yr),FUN=mean,  na.rm=TRUE) 
   names(meanAll)=c("Year", "catch_km2", "No_km2")
-  p=ggplot(data1S(), aes(x=Yr, y=No_km2)) + geom_jitter(width = 0.05, colour="grey") + 
+  #p=ggplot(data1S(), aes(x=Yr, y=No_km2)) + geom_jitter(width = 0.05, colour="grey") + 
+  p=ggplot(data1S(), aes(x=Yr, y=No_km2)) + geom_jitter(width = 0.05, colour="grey",aes(text=sprintf("Station: %s", Haul))) + 
     geom_line(data=meanAll, aes(x=Year, y =No_km2), size=0.5)+ 
     ylab("No/KM<sup>2</sup>")+ xlab("Year") +
     theme_bw() + theme(legend.position = "none")
@@ -673,7 +675,8 @@ output$abundanceplotparam=renderPlotly({
   if(input$sp1=="Nephrops"){
     meansex <- aggregate(N_FU()[,c("No_Km2")],by=list(N_FU()$Year,N_FU()$Sex),FUN=mean,  na.rm=TRUE)
     names(meansex)=c("Year", "Sex", "No_Km2")
-    p=ggplot(N_FU(), aes(x=Year, y=No_Km2, colour=Sex)) + geom_jitter(width = 0.05) + 
+    #p=ggplot(N_FU(), aes(x=Year, y=No_Km2, colour=Sex)) + geom_jitter(width = 0.05) + 
+    p=ggplot(N_FU(), aes(x=Year, y=No_Km2, colour=Sex)) + geom_jitter(width = 0.05, aes(text=sprintf("Station: %s", Haul))) + 
       geom_line(data=meansex, aes(x=Year, y =No_Km2),size=0.5,colour="black")+ ylab("No/KM<sup>2</sup>") + facet_wrap(~Sex)+
       theme_bw()  + theme(legend.position = "none")+
       theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5,size=8))+
@@ -685,7 +688,8 @@ output$abundanceplotparam=renderPlotly({
   }else if(input$parameter=="Sex"){
     meanSex<-aggregate(data1S()[,c("catch_km2","No_km2")], by=list(data1S()$Yr, data1S()$Sex),FUN=mean,  na.rm=TRUE)
     names(meanSex)=c("Year", "Sex", "catch_km2", "No_km2")
-    p=ggplot(data1S(),aes(x=Yr, y=No_km2, colour=Sex)) +geom_jitter(width=0.05) + 
+    #p=ggplot(data1S(),aes(x=Yr, y=No_km2, colour=Sex)) +geom_jitter(width=0.05) + 
+    p=ggplot(data1S(),aes(x=Yr, y=No_km2, colour=Sex)) +geom_jitter(width=0.05, aes(text=sprintf("Station: %s", Haul))) + 
       geom_line(data=meanSex, aes(x=Year, y =No_km2), size=0.5,colour="black")+   scale_color_manual(values=c("U"="#F8766D","F"="#00BFC4","M"="#B79F00"))+
       labs(y = "No/KM<sup>2</sup>", x="Year") +
       facet_wrap(~Sex) + theme_bw() + theme(legend.position = "none")
@@ -693,7 +697,8 @@ output$abundanceplotparam=renderPlotly({
     meanGear<-aggregate(data1S()[,c("catch_km2","No_km2")],
                         by=list(data1S()$Yr, data1S()$fldGearDescription),FUN=mean,  na.rm=TRUE)
     names(meanGear)=c("Year", "fldGearDescription", "catch_km2", "No_km2")
-    p=ggplot(data1S(),aes(x=Yr, y=No_km2, colour=fldGearDescription)) +geom_jitter(width=0.05) + 
+    #p=ggplot(data1S(),aes(x=Yr, y=No_km2, colour=fldGearDescription)) +geom_jitter(width=0.05) + 
+    p=ggplot(data1S(),aes(x=Yr, y=No_km2, colour=fldGearDescription)) +geom_jitter(width=0.05, aes(text=sprintf("Station: %s", Haul))) + 
       geom_line(data=meanGear, aes(x=Year, y =No_km2),size=0.5,colour="black" )+
       labs(y = "No/KM<sup>2</sup>", x="Year") +
       facet_wrap(~fldGearDescription) + theme_bw() + theme(legend.position = "none")
@@ -706,7 +711,8 @@ output$abundanceplotparam=renderPlotly({
       meanDiv<-aggregate(abundancebydiv[,c("catch_km2","No_km2")], 
                          by=list(abundancebydiv$Yr,abundancebydiv$ICESCODE), FUN=mean, na.rm=TRUE)
       names(meanDiv)=c("Year", "ICESCODE", "catch_km2", "No_km2")
-      p=ggplot(abundancebydiv, aes(x=Yr, y=No_km2, colour=ICESCODE)) + geom_jitter(width = 0.05) + 
+      #p=ggplot(abundancebydiv, aes(x=Yr, y=No_km2, colour=ICESCODE)) + geom_jitter(width = 0.05) + 
+      p=ggplot(abundancebydiv, aes(x=Yr, y=No_km2, colour=ICESCODE)) + geom_jitter(width = 0.05, aes(text=sprintf("Station: %s", Haul))) + 
         geom_line(data=meanDiv, aes(x=Year, y =No_km2),size=0.5,colour="black" )+
         labs(y = "No/KM<sup>2</sup>", x="Year") +
         facet_wrap(~ICESCODE) + theme_bw() + theme(legend.position = "none")+ scale_colour_manual(values=def)
