@@ -1,3 +1,0 @@
-cd igfsmon
-cd coeffs
-echo Bfifty2s | sudo -S cp * /srv/shiny-server/igfsmon/coeffs/
