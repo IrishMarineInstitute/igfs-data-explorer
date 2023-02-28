@@ -1,11 +1,25 @@
 
 function(input, output, session) {
   
+
+  
   ##### Interactive Map 1 - Timeseries #####
   # Create the map - leaflet 
   output$map <- renderLeaflet({
     leaflet() %>% 
-      addProviderTiles(providers$Esri.OceanBasemap) %>% 
+      # Fix required because ESRI changed the location of their base map
+      # https://github.com/rstudio/leaflet/issues/841
+      #addProviderTiles(providers$Esri.OceanBasemap) %>% 
+      # add base: blue bathymetry and light brown/green topography
+      addProviderTiles(
+        "Esri.OceanBasemap",
+        options = providerTileOptions(
+          variant = "Ocean/World_Ocean_Base")) %>% 
+      # add reference: placename labels and borders
+      addProviderTiles(
+        "Esri.OceanBasemap",
+        options = providerTileOptions(
+          variant = "Ocean/World_Ocean_Reference")) %>% 
       setView(lng = -8.2124, lat = 53.2734, zoom = 6)
   })
   

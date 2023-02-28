@@ -16,6 +16,7 @@ library(tidyverse)
 library(DT)
 library(rgdal)
 
+
 #############define colours#################
 
 
@@ -64,4 +65,7 @@ vbTyp = function(age, Linf, K, t0)Linf*(1-exp(-K*(age-t0)))
 ################################################
 
 coeff_L_A<-read.csv("Data/dataApp/coeff_L_A.csv", stringsAsFactors = TRUE)
+
+
+
 
