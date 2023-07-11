@@ -22,6 +22,9 @@ library(tidyr)
 
 ```{r pulling data}
 
+## REMEMBER TO CHECK THAT THE database is up-to-date
+## (if it is not, then run the update job first!)
+
 # Store the server and db names in a csv file (not on GitHub)
 myserverDBNames <- read.csv("serverDBNames.csv", stringsAsFactors = FALSE)
 myConnString <- paste0("Driver=SQL Server;Server=",myserverDBNames$server,";Database=",
@@ -36,7 +39,7 @@ FROM [dbo].[SurveyAbundanceAndDistribution]
 ", stringsAsFactors = TRUE)
 
 #summary(data1)
-str(data1)
+#str(data1)
 
 
 dat<- sqlQuery(channel,"
@@ -45,7 +48,7 @@ FROM [dbo].[SurveyCatchRate]
 ", stringsAsFactors = TRUE)
 
 #summary(dat)
-str(dat)
+#str(dat)
 
 
 
@@ -55,7 +58,7 @@ FROM [dbo].[SurveyLenghtData]
 ", stringsAsFactors = TRUE)
 
 #summary(LengthData)
-str(LengthData)
+#str(LengthData)
 
 LengthWeightAge<- sqlQuery(channel,"
 SELECT *
@@ -63,7 +66,7 @@ FROM [dbo].[SurveyLenghtWeightAge]
 ", stringsAsFactors = TRUE)
 
 #summary(LengthWeightAge)
-str(LengthWeightAge)
+#str(LengthWeightAge)
 
 stn<- sqlQuery(channel,"
 SELECT *
@@ -72,7 +75,7 @@ WHERE fldcruisename like 'IGFS%'
 ", stringsAsFactors = TRUE)
 
 #summary(stn)
-str(stn)
+#str(stn)
 
 saveRDS(stn,"updatedData/stn.RDS")
 
@@ -87,7 +90,7 @@ close(channel)
 
 ```{r NEP data}
 nep<-read.csv("gfs_nep_final_IBTS.csv", stringsAsFactors = TRUE)#.csv from L:\Surveys\IGFS\Nephrops
-summary(nep)
+#summary(nep)
 
 #join with stn data
 
@@ -98,7 +101,7 @@ names(nep)[c(8,9)]<-c("fldCruiseName"   ,         "fldCruiseStationNumber")
 datN<-merge(nep, stnNep, by.x=c("fldCruiseName"   ,"fldCruiseStationNumber"))
 datN<-datN[c(3:9,1,2,10:21)]
 names(datN)[c(8,9,21)]<-c("Survey_Code","Haul","AreaKmSq")
-summary(datN)
+#summary(datN)
 ```
 
 
