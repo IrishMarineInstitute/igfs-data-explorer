@@ -425,8 +425,18 @@ output$mymap <- renderLeaflet({
     
     mymap <-leaflet() %>%
       setView(lng = -9, lat = 53, zoom = 5.5) %>%
-      addProviderTiles(providers$Esri.OceanBasemap) %>%
-      
+      # Fix required because ESRI changed the location of their base map
+      # addProviderTiles(providers$Esri.OceanBasemap) %>%
+      # add base: blue bathymetry and light brown/green topography
+      addProviderTiles(
+        "Esri.OceanBasemap",
+        options = providerTileOptions(
+          variant = "Ocean/World_Ocean_Base")) %>% 
+      # add reference: placename labels and borders
+      addProviderTiles(
+        "Esri.OceanBasemap",
+        options = providerTileOptions(
+          variant = "Ocean/World_Ocean_Reference")) %>% 
       addPolylines(color = "grey",data= FU, group = "Functional Units", weight = 2)%>%
       addLabelOnlyMarkers(data = centers,
                           lng = ~x, lat = ~y, label = ~paste("", region),
@@ -443,7 +453,18 @@ output$mymap <- renderLeaflet({
     mymap <-leaflet() %>%
       setView(lng = -9, lat = 53, zoom = 6) %>%
       #addTiles() %>%
-      addProviderTiles(providers$Esri.OceanBasemap) %>%
+      # Fix required because ESRI changed the location of their base map
+      # addProviderTiles(providers$Esri.OceanBasemap) %>%
+      # add base: blue bathymetry and light brown/green topography
+      addProviderTiles(
+        "Esri.OceanBasemap",
+        options = providerTileOptions(
+          variant = "Ocean/World_Ocean_Base")) %>% 
+      # add reference: placename labels and borders
+      addProviderTiles(
+        "Esri.OceanBasemap",
+        options = providerTileOptions(
+          variant = "Ocean/World_Ocean_Reference")) %>% 
       addPolylines(color = "grey",data= div, group = "ICES Sub-Areas", weight = 3)%>%
       addPolylines(color = "darkgrey",data= cont, group = "ICES Sub-Areas", weight = 3)%>%
       #addControl(html = html_legend, position = "bottomright")%>%
@@ -457,7 +478,18 @@ output$mymap <- renderLeaflet({
   else {mymap <-leaflet() %>%
     setView(lng = -9, lat = 53, zoom = 6) %>%
     #addTiles() %>%
-    addProviderTiles(providers$Esri.OceanBasemap) %>%
+    # Fix required because ESRI changed the location of their base map
+    # addProviderTiles(providers$Esri.OceanBasemap) %>%
+    # add base: blue bathymetry and light brown/green topography
+    addProviderTiles(
+      "Esri.OceanBasemap",
+      options = providerTileOptions(
+        variant = "Ocean/World_Ocean_Base")) %>% 
+    # add reference: placename labels and borders
+    addProviderTiles(
+      "Esri.OceanBasemap",
+      options = providerTileOptions(
+        variant = "Ocean/World_Ocean_Reference")) %>% 
     addPolylines(color = "grey",data= div, group = "ICES Sub-Areas", weight = 3)%>%
     addPolylines(color = "darkgrey",data= cont, group = "ICES Sub-Areas", weight = 3)%>%
     #addControl(html = html_legend, position = "bottomright")%>%
