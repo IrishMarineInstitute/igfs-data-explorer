@@ -9,3 +9,4 @@ Data/dataApp/backup/
 R/serverDBNames.csv
 data-raw/serverDBNames.csv
 data-raw/updatedData/
+rsconnect/
