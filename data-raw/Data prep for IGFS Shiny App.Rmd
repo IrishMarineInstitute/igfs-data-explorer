@@ -9,11 +9,27 @@ author: Olga Kalinina # change name
 ---
 
 ```{r include=FALSE}
+#library(devtools)
+#devtools::install_github('droglenc/FSAsim')
+
 library(knitr)
 library(RODBC)
 library(dplyr)
 library(reshape2)
 library(tidyr)
+
+library(FSAsim)
+library(FSA)
+library(magrittr)
+library(dplyr)
+library(nlstools)
+library(tidyverse)
+library(broom)
+library(lhmixr)
+library(tidyverse)
+
+#setwd('./data-raw')
+
 ```
 
 ## Pulling Data from Informatics load(except NEP)
@@ -77,7 +93,8 @@ WHERE fldcruisename like 'IGFS%'
 #summary(stn)
 #str(stn)
 
-saveRDS(stn,"updatedData/stn.RDS")
+#print(getwd())
+saveRDS(stn,"./updatedData/stn.RDS")
 
 close(channel)
 
@@ -370,19 +387,19 @@ saveRDS(JuvNumbersMapN,"updatedData/JuvNumbersMapN.RDS")
 
 ### Fitting model and saving estimates
 ```{r coefs,error=F,warning=F,echo=T,message=F,results='hide'}
-library(devtools)
-
-#devtools::install_github('droglenc/FSAsim')
-
-library(FSAsim)
-library(FSA)
-library(magrittr)
-library(dplyr)
-library(nlstools)
-library(tidyverse)
-library(broom)
-library(lhmixr)
-library(tidyverse)
+# library(devtools)
+# 
+# #devtools::install_github('droglenc/FSAsim')
+# 
+# library(FSAsim)
+# library(FSA)
+# library(magrittr)
+# library(dplyr)
+# library(nlstools)
+# library(tidyverse)
+# library(broom)
+# library(lhmixr)
+# library(tidyverse)
 LWA<-LengthWeightAge
 #coeff_Length_Age<-function(LWA){
 sp_names<-read.csv("Sp_names.csv", stringsAsFactors = TRUE)
