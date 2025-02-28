@@ -6,3 +6,5 @@ toIgnore/
 R/updatedData/
 Data/dataApp/20211207/
 R/serverDBNames.csv
+data-raw/serverDBNames.csv
+data-raw/updatedData/
