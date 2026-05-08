@@ -14,7 +14,8 @@ library(plotly)
 library(tidyr)
 library(tidyverse)
 library(DT)
-library(rgdal)
+#library(rgdal)
+library(sf)
 
 
 #############define colours#################
@@ -28,7 +29,9 @@ def<-c("#F8766D","#00BFC4","#B79F00","#619CFF","#00BA38","#F564E3")
 div <- geojsonio::geojson_read("Data/shapefiles/div_simple.geojson", what = "sp")
 cont <- geojsonio::geojson_read("Data/shapefiles/cont1_simple.geojson", what = "sp")
 
-FU <- rgdal::readOGR("Data/shapefiles","Nephrops_Functional_Unit_Cut")
+#FU <- rgdal::readOGR("Data/shapefiles","Nephrops_Functional_Unit_Cut")
+FU <- sf::st_read("Data/shapefiles/Nephrops_Functional_Unit_Cut.shp")
+
 centers <-readRDS("Data/shapefiles/centers.RDS")
 
 

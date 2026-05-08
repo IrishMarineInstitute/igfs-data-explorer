@@ -5,4 +5,8 @@
 toIgnore/
 R/updatedData/
 Data/dataApp/20211207/
+Data/dataApp/backup/
 R/serverDBNames.csv
+data-raw/serverDBNames.csv
+data-raw/updatedData/
+rsconnect/

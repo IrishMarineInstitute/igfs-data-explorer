@@ -324,7 +324,7 @@ output$yearfilter1=renderUI({
 })
 
 output$paramselector=renderUI({
-  if(input$sp1=="Nephrops"){
+  if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
   selectInput("parameterN", h3("Select Functional Unit "),
               choices = c("16", "17", "19", "20-21","22","Outside FU"), selected = "16")}
 else{selectInput("parameter", h3("Select Parameter"),
@@ -340,8 +340,9 @@ output$yearfilter=renderUI({
 
 
 #Divfilter only appears if Division parameter selected
+# 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
 output$divfilter=renderUI({
-  if(input$sp1!="Nephrops" & input$parameter=="Division" & input$tabselected %in% c("cpue","abundance","lf","lw")){
+  if(input$sp1!="Nephrops1" & input$parameter=="Division" & input$tabselected %in% c("cpue","abundance","lf","lw")){
    divlist= factor(as.character(unique(dat$ICESCODE)))
      checkboxGroupInput("division1", h3("Select Division"),choices=sort(divlist))}
 })
@@ -354,14 +355,14 @@ output$divfilter=renderUI({
 ### Filtering data ###
 ######################
 juv_length_split=reactive({
-  if(input$sp1=="Nephrops"){
+  if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
     17}
 else{  
   dplyr::filter(LengthData,Species%in%speciesFAO())$preRecruitLength[1]}
   })
 ########Map#####
 cat=reactive({
-  if(input$sp1=="Nephrops"){
+  if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
     dplyr::filter(dat_raised, Survey_Code %in% paste0('IGFS', input$slideryearS))}
   else{
     dplyr::filter(dat1, Cruise %in% paste0('IGFS', input$slideryearS),Species%in%speciesFAO())
@@ -379,14 +380,14 @@ haul = reactive({
 
 
  JuvNumbers=reactive({
-   if(input$sp1=="Nephrops"){
+   if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
      dplyr::filter(JuvNumbersMapN, Year %in% input$slideryearS & No_30min>0)
    }
    else {dplyr::filter(JuvNumbersMap, Year %in% input$slideryearS & CatchNos30minHaul>0,Species%in%speciesFAO())}
  })
  
  AdultNumbers=reactive({
-   if(input$sp1=="Nephrops"){
+   if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
      dplyr::filter(AdultNumbersMapN, Year %in% input$slideryearS & No_30min>0)
    }
    else{dplyr::filter(AdultNumbersMap, Year %in% input$slideryearS & CatchNos30minHaul>0,Species%in%speciesFAO())}
@@ -421,12 +422,22 @@ datS=reactive({
  })
 
 output$mymap <- renderLeaflet({
-  if(input$sp1=="Nephrops"){
+  if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
     
     mymap <-leaflet() %>%
       setView(lng = -9, lat = 53, zoom = 5.5) %>%
-      addProviderTiles(providers$Esri.OceanBasemap) %>%
-      
+      # Fix required because ESRI changed the location of their base map
+      # addProviderTiles(providers$Esri.OceanBasemap) %>%
+      # add base: blue bathymetry and light brown/green topography
+      addProviderTiles(
+        "Esri.OceanBasemap",
+        options = providerTileOptions(
+          variant = "Ocean/World_Ocean_Base")) %>% 
+      # add reference: placename labels and borders
+      addProviderTiles(
+        "Esri.OceanBasemap",
+        options = providerTileOptions(
+          variant = "Ocean/World_Ocean_Reference")) %>% 
       addPolylines(color = "grey",data= FU, group = "Functional Units", weight = 2)%>%
       addLabelOnlyMarkers(data = centers,
                           lng = ~x, lat = ~y, label = ~paste("", region),
@@ -443,7 +454,18 @@ output$mymap <- renderLeaflet({
     mymap <-leaflet() %>%
       setView(lng = -9, lat = 53, zoom = 6) %>%
       #addTiles() %>%
-      addProviderTiles(providers$Esri.OceanBasemap) %>%
+      # Fix required because ESRI changed the location of their base map
+      # addProviderTiles(providers$Esri.OceanBasemap) %>%
+      # add base: blue bathymetry and light brown/green topography
+      addProviderTiles(
+        "Esri.OceanBasemap",
+        options = providerTileOptions(
+          variant = "Ocean/World_Ocean_Base")) %>% 
+      # add reference: placename labels and borders
+      addProviderTiles(
+        "Esri.OceanBasemap",
+        options = providerTileOptions(
+          variant = "Ocean/World_Ocean_Reference")) %>% 
       addPolylines(color = "grey",data= div, group = "ICES Sub-Areas", weight = 3)%>%
       addPolylines(color = "darkgrey",data= cont, group = "ICES Sub-Areas", weight = 3)%>%
       #addControl(html = html_legend, position = "bottomright")%>%
@@ -457,7 +479,18 @@ output$mymap <- renderLeaflet({
   else {mymap <-leaflet() %>%
     setView(lng = -9, lat = 53, zoom = 6) %>%
     #addTiles() %>%
-    addProviderTiles(providers$Esri.OceanBasemap) %>%
+    # Fix required because ESRI changed the location of their base map
+    # addProviderTiles(providers$Esri.OceanBasemap) %>%
+    # add base: blue bathymetry and light brown/green topography
+    addProviderTiles(
+      "Esri.OceanBasemap",
+      options = providerTileOptions(
+        variant = "Ocean/World_Ocean_Base")) %>% 
+    # add reference: placename labels and borders
+    addProviderTiles(
+      "Esri.OceanBasemap",
+      options = providerTileOptions(
+        variant = "Ocean/World_Ocean_Reference")) %>% 
     addPolylines(color = "grey",data= div, group = "ICES Sub-Areas", weight = 3)%>%
     addPolylines(color = "darkgrey",data= cont, group = "ICES Sub-Areas", weight = 3)%>%
     #addControl(html = html_legend, position = "bottomright")%>%
@@ -473,7 +506,7 @@ observe({
  req(input$pages=="map")
  new_zoom <- input$mymap_zoom
   if(is.na(juv_length_split())==FALSE){
-    if(input$sp1=="Nephrops"){
+    if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
       leafletProxy('mymap') %>%
         clearGroup(group =  c("Catch Rate kg/hr", "Distribution No/km<sup>2</sup>", 
                               "Total No of Nephrops per 30 min Haul", "No of Juvenile Nephrops per 30 min Haul", 
@@ -581,7 +614,7 @@ observe({
 ### CPUE ###
 ############
 output$cpueplotall=renderPlotly({
-  if(input$sp1=="Nephrops"){
+  if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
     catchAll <- aggregate(list(KgHr=N_FU()$Kg_Hr), list(Cruise=N_FU()$Survey_Code, Year= N_FU()$Year),mean, na.rm=TRUE)
     p=ggplot(N_FU(), aes(x=Year, y=Kg_Hr)) + 
       geom_jitter(width = 0.05, colour="grey",aes(text=sprintf("Station: %s", Haul))) + 
@@ -619,7 +652,7 @@ output$cpueplotall=renderPlotly({
 })
 
 output$cpueplotparam=renderPlotly({
-  if(input$sp1=="Nephrops"){ 
+  if(input$sp1=="Nephrops1"){  # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
     catchsex <- aggregate(list(KgHr=N_FU()$Kg_Hr), list(Cruise=N_FU()$Survey_Code, Year= N_FU()$Year,Sex=N_FU()$Sex),mean, na.rm=TRUE)
   p=ggplot(N_FU(), aes(x=Year, y=Kg_Hr,colour=Sex)) + geom_jitter(width = 0.05,aes(text=sprintf("Station: %s", Haul))) + 
     geom_line(data=catchsex, aes(x=Year, y =KgHr), size=0.5,colour="black")+ ylab("KG/Hour") + facet_wrap(~Sex)+
@@ -663,7 +696,7 @@ output$cpueplotparam=renderPlotly({
 ### Abundance ###
 #################
 output$abundanceplotall=renderPlotly({
-  if(input$sp1=="Nephrops"){
+  if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
     meanAll <- aggregate(N_FU()[,c("No_Km2")],by=list(N_FU()$Year),FUN=mean,  na.rm=TRUE)
     names(meanAll)=c("Year", "No_Km2")
     #p=ggplot(N_FU(), aes(x=Year, y=No_Km2)) + geom_jitter(width = 0.05, colour="grey") + 
@@ -686,7 +719,7 @@ output$abundanceplotall=renderPlotly({
 })
 
 output$abundanceplotparam=renderPlotly({
-  if(input$sp1=="Nephrops"){
+  if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
     meansex <- aggregate(N_FU()[,c("No_Km2")],by=list(N_FU()$Year,N_FU()$Sex),FUN=mean,  na.rm=TRUE)
     names(meansex)=c("Year", "Sex", "No_Km2")
     #p=ggplot(N_FU(), aes(x=Year, y=No_Km2, colour=Sex)) + geom_jitter(width = 0.05) + 
@@ -741,7 +774,7 @@ output$abundanceplotparam=renderPlotly({
 ########################
 # Get recent data for current species
 output$lfplotall=renderPlot({
-  if(input$sp1=="Nephrops"){
+  if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
     lfAll <- aggregate(N_FU()[,c("NepCount")],by=list(N_FU()$Year,N_FU()$CLmm,N_FU()$Functional_Unit),FUN=sum,  na.rm=TRUE)
     names(lfAll)=c("Year", "LengthClass", "FU","NepCount")
     ggplot(lfAll, aes(LengthClass, Year, height = NepCount, group = Year, alpha=.5)) +
@@ -758,7 +791,7 @@ output$lfplotall=renderPlot({
 })
  
  output$lfplotparam=renderPlot({
-   if(input$sp1=="Nephrops"){
+   if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
     lfAll <- aggregate(N_FU()[,c("NepCount")],by=list(N_FU()$Year,N_FU()$CLmm,N_FU()$Functional_Unit,N_FU()$Sex),FUN=sum,  na.rm=TRUE)
    names(lfAll)=c("Year", "LengthClass", "FU","Sex","NepCount")
    ggplot(lfAll, aes(LengthClass, Year, height = NepCount, group = Year,fill=Sex, alpha=.5)) +
@@ -821,7 +854,7 @@ output$lfplotall=renderPlot({
  #Length/Freq UI
  output$lengthfrequi= renderUI({
   list( "Total number in the survey",
-   if(input$sp1=="Nephrops"){ 
+   if(input$sp1=="Nephrops1"){  # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
      fluidRow(column(5,list(plotOutput("lfplotall"),paste("Vertical line is the length cut off for",input$sp1, "Juvenile/Adult(",juv_length_split(),"cm)"))),
                                        column(7, plotOutput("lfplotparam"))
    )}
@@ -842,7 +875,7 @@ output$lfplotall=renderPlot({
  ### Length/Weight Plot ###
  ##########################
  LengthWeightAgeSp=reactive({
-   if(input$sp1=="Nephrops"){
+   if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
      if(is.null(input$slideryearS1)){
        filter(indLW, Weight_g!="NA" & Year == maxyear)
      }else{
@@ -856,7 +889,7 @@ output$lfplotall=renderPlot({
  })
  
  LengthWeightAgeSp1=reactive({
-   if(input$sp1=="Nephrops"){filter(indLW, Weight_g!="NA")}
+   if(input$sp1=="Nephrops1"){filter(indLW, Weight_g!="NA")} # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
  else {filter(LengthWeightAge, fldFishWholeWeight!="NA",fldMainSpeciesCode%in%speciesFAO())}
  })
  
@@ -865,7 +898,7 @@ output$lfplotall=renderPlot({
  
  
  output$lwplot=renderPlotly({
-   if(input$sp1=="Nephrops"){
+   if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
      p <- plot_ly(LengthWeightAgeSp(), x = ~CLmm, y = ~Weight_g, type = 'scatter', mode = 'markers',colors=c("Female"="#F8766D","Male"="#00BFC4"),
                   text=~paste("Length:",CLmm,"cm","<br>Weight:",Weight_g,
                               "<br>Sex:",Sex),
@@ -1404,7 +1437,8 @@ output$downloadData_L <- downloadHandler(
   contentType = "application/csv"
 )
 output$Ldownload=renderUI({
-  if(input$tabselected=="lf" & input$sp1!="Nephrops"){
+  # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
+  if(input$tabselected=="lf" & input$sp1!="Nephrops1"){
     downloadButton("downloadData_L", "Download Length data")
   }
 })
@@ -1458,7 +1492,8 @@ output$Ldownload=renderUI({
      paste(speciesFAO(), "_Map_data",".csv", sep = "")
    },
    content = function(file) {
-     if(input$sp1=="Nephrops"){write.csv(dat_raised, file, row.names = FALSE)}
+     # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
+     if(input$sp1=="Nephrops1"){write.csv(dat_raised, file, row.names = FALSE)}
      else{write.csv(mapd(), file, row.names = FALSE)}
    },
    contentType = "application/csv"
