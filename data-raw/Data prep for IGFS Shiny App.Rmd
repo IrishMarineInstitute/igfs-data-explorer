@@ -49,52 +49,70 @@ channel <- odbcDriverConnect(myConnString)
 
 ########Get Data from Informatics Load######
 
-data1<- sqlQuery(channel,"
-SELECT *
-FROM [dbo].[SurveyAbundanceAndDistribution]
-", stringsAsFactors = TRUE)
+# IMPORTANT - Change this value to extract either IAMS or IGFS data
+surveyToUse <- 'IGFS'
+folderToUse <- paste0("./updatedData/",surveyToUse,"/")
+
+abundanceQuery <- paste0("SELECT [Cruise],[Yr],[Haul],isnull([fldPrimeStation],'H:'+cast([Haul] as varchar)) as fldPrimeStation,[Time_Min],[LonDec],[LatDec],[DoorSpread],[Dist_Nmi],[AreaKmSq],[ObsVal],[RECT],[Stratum],[ICESCODE],[Validity],[Species],[Sex],[fldGearCode],[fldGearDescription],[CatchKg],[RaisedNo],[LoadDate] FROM [dbo].[SurveyAbundanceAndDistribution] WHERE Cruise like '",surveyToUse,"%'")
+data1<- sqlQuery(channel,abundanceQuery, stringsAsFactors = TRUE)
+
+# data1<- sqlQuery(channel,"
+# SELECT *
+# FROM [dbo].[SurveyAbundanceAndDistribution]
+# ", stringsAsFactors = TRUE)
 
 #summary(data1)
 #str(data1)
 
+catchRateQuery <- paste0("SELECT [Cruise],[Haul],isnull([Prime_Stn],'H:'+cast([Haul] as varchar)) as Prime_Stn,[fldICESRectangle],[fldStratum],[Area],[ICESCODE],[fldValidityCode],[Lon],[Lat],[Species],[fldCommonName],[fldScientificName],[fldSex],[GearDescription],[Catch_Kg],[Kg_Per_Hr],[LoadDate] FROM [dbo].[SurveyCatchRate] WHERE Cruise like '",surveyToUse,"%'")
+dat<- sqlQuery(channel,catchRateQuery, stringsAsFactors = TRUE)
 
-dat<- sqlQuery(channel,"
-SELECT *
-FROM [dbo].[SurveyCatchRate]
-", stringsAsFactors = TRUE)
+# dat<- sqlQuery(channel,"
+# SELECT *
+# FROM [dbo].[SurveyCatchRate]
+# ", stringsAsFactors = TRUE)
 
 #summary(dat)
 #str(dat)
 
+lengthQuery <- paste0("SELECT * FROM [dbo].[SurveyLenghtData] WHERE fldCruiseName like '",surveyToUse,"%'")
+LengthData<- sqlQuery(channel,lengthQuery, stringsAsFactors = TRUE)
 
-
-LengthData<- sqlQuery(channel,"
-SELECT *
-FROM [dbo].[SurveyLenghtData]
-", stringsAsFactors = TRUE)
+# LengthData<- sqlQuery(channel,"
+# SELECT *
+# FROM [dbo].[SurveyLenghtData]
+# ", stringsAsFactors = TRUE)
 
 #summary(LengthData)
 #str(LengthData)
 
-LengthWeightAge<- sqlQuery(channel,"
-SELECT *
-FROM [dbo].[SurveyLenghtWeightAge]
-", stringsAsFactors = TRUE)
+
+LengthWeightAgeQuery <- paste0("SELECT * FROM [dbo].[SurveyLenghtWeightAge] WHERE fldCruiseName like '",surveyToUse,"%'")
+LengthWeightAge<- sqlQuery(channel,LengthWeightAgeQuery, stringsAsFactors = TRUE)
+
+# LengthWeightAge<- sqlQuery(channel,"
+# SELECT *
+# FROM [dbo].[SurveyLenghtWeightAge]
+# ", stringsAsFactors = TRUE)
 
 #summary(LengthWeightAge)
 #str(LengthWeightAge)
 
-stn<- sqlQuery(channel,"
-SELECT *
-FROM [dbo].[SurveyMI_Survey_Station_Data]
-WHERE fldcruisename like 'IGFS%'
-", stringsAsFactors = TRUE)
+stationQuery <- paste0("SELECT [FID],[fldCruiseName], isnull([fldPrimeStation],'H:'+cast(fldCruiseStationNumber as varchar)) as fldPrimeStation,[fldGearCode],[fldShotDepth],[fldHaulDepth],[fldCruiseStationNumber],[HaulCnt],[Gear_Type],[SweepLngt],[fldICESRectangle],[fldValidityCode],[fldDateTimeShot],[TowDurationMin],[fldShotLatDecimalDegrees],[fldShotLonDecimalDegrees],[fldHaulLatDecimalDegrees],[fldHaulLonDecimalDegrees],[fldStratum],[DoorSpread],[fldWingSpread],[fldHeadlineHeight],[Dist_Nmi],[Dist_Km],[AreaKmSq],[ObsVal],[SweepAngle],[Warp],[Heave_m],[Pitch_deg],[Roll_deg],[WindSpeed_Kts],[fldGearDamage],[fldStationComment],[LoadDate]  FROM [dbo].[SurveyMI_Survey_Station_Data] WHERE fldcruisename like '",surveyToUse,"%'")
+stn<- sqlQuery(channel,stationQuery, stringsAsFactors = TRUE)
+
+# stn<- sqlQuery(channel,"
+# SELECT *
+# FROM [dbo].[SurveyMI_Survey_Station_Data]
+# WHERE fldcruisename like 'IGFS%'
+# ", stringsAsFactors = TRUE)
 
 #summary(stn)
 #str(stn)
 
 #print(getwd())
-saveRDS(stn,"./updatedData/stn.RDS")
+#saveRDS(stn,"./updatedData/stn.RDS")
+saveRDS(stn,paste0(folderToUse,"stn.RDS"))
 
 close(channel)
 
@@ -103,22 +121,22 @@ close(channel)
 
 
 
-## Getting ready NEP data
+## Getting ready NEP data (commented out because we'll just use the database now)
 
 ```{r NEP data}
-nep<-read.csv("gfs_nep_final_IBTS.csv", stringsAsFactors = TRUE)#.csv from L:\Surveys\IGFS\Nephrops
-#summary(nep)
-
-#join with stn data
-
-stnNep<-stn%>%select( "fldCruiseName" ,"fldCruiseStationNumber", "fldShotLatDecimalDegrees" ,"fldShotLonDecimalDegrees",
-                    "fldHaulLatDecimalDegrees","fldHaulLonDecimalDegrees" ,"Gear_Type", "TowDurationMin"  ,"AreaKmSq"  )
-
-names(nep)[c(8,9)]<-c("fldCruiseName"   ,         "fldCruiseStationNumber")
-datN<-merge(nep, stnNep, by.x=c("fldCruiseName"   ,"fldCruiseStationNumber"))
-datN<-datN[c(3:9,1,2,10:21)]
-names(datN)[c(8,9,21)]<-c("Survey_Code","Haul","AreaKmSq")
-#summary(datN)
+# nep<-read.csv("gfs_nep_final_IBTS.csv", stringsAsFactors = TRUE)#.csv from L:\Surveys\IGFS\Nephrops
+# #summary(nep)
+# 
+# #join with stn data
+# 
+# stnNep<-stn%>%select( "fldCruiseName" ,"fldCruiseStationNumber", "fldShotLatDecimalDegrees" ,"fldShotLonDecimalDegrees",
+#                     "fldHaulLatDecimalDegrees","fldHaulLonDecimalDegrees" ,"Gear_Type", "TowDurationMin"  ,"AreaKmSq"  )
+# 
+# names(nep)[c(8,9)]<-c("fldCruiseName"   ,         "fldCruiseStationNumber")
+# datN<-merge(nep, stnNep, by.x=c("fldCruiseName"   ,"fldCruiseStationNumber"))
+# datN<-datN[c(3:9,1,2,10:21)]
+# names(datN)[c(8,9,21)]<-c("Survey_Code","Haul","AreaKmSq")
+# #summary(datN)
 ```
 
 
@@ -149,7 +167,8 @@ names(datN)[c(8,9,21)]<-c("Survey_Code","Haul","AreaKmSq")
  names(mapdata) = c("PrimeStation", "Longitude"  ,  "Latitude"   ,  "Year"   ,      "AreaKmSq" , 
                             "CatchKg"    ,  "RaisedNo")
  
- saveRDS(mapdata,"updatedData/mapdata.RDS")
+ #saveRDS(mapdata,"updatedData/mapdata.RDS")
+ saveRDS(mapdata,paste0(folderToUse,"mapdata.RDS"))
 
 ##################################################
 ################sp_data_gr########################
@@ -172,7 +191,9 @@ names(datN)[c(8,9,21)]<-c("Survey_Code","Haul","AreaKmSq")
  levels(temp$Group)[which(levels(temp$Group) %in% c("NOP", "POD"))]<-"Small demersal" 
  sp_data_gp<-temp
 
-saveRDS(sp_data_gp,"updatedData/sp_data_gp.RDS")
+#saveRDS(sp_data_gp,"updatedData/sp_data_gp.RDS")
+saveRDS(sp_data_gp,paste0(folderToUse,"sp_data_gp.RDS"))
+
 
 
 ```
@@ -289,99 +310,108 @@ if(dim(Adults)[1]>0){
                              "CatchNos"=NA,
                              "CatchNos30minHaul"=NA,
                              "symbSize"=NA)}
-saveRDS(data1,"updatedData/data1.RDS")
-saveRDS(dat,"updatedData/dat.RDS")
-saveRDS(dat1,"updatedData/dat1.RDS")
-saveRDS(LengthWeightAge,"updatedData/LengthWeightAge.RDS")
-saveRDS(LengthData,"updatedData/LengthData.RDS")
-saveRDS(mapdataS,"updatedData/mapdataS.RDS")
-saveRDS(TotalNumbersMap,"updatedData/TotalNumbersMap.RDS")
-saveRDS(AdultNumbersMap,"updatedData/AdultNumbersMap.RDS")
-saveRDS(JuvNumbersMap,"updatedData/JuvNumbersMap.RDS")
+#saveRDS(data1,"updatedData/data1.RDS")
+saveRDS(data1,paste0(folderToUse,"data1.RDS"))
+#saveRDS(dat,"updatedData/dat.RDS")
+saveRDS(dat,paste0(folderToUse,"dat.RDS"))
+#saveRDS(dat1,"updatedData/dat1.RDS")
+saveRDS(dat1,paste0(folderToUse,"dat1.RDS"))
+#saveRDS(LengthWeightAge,"updatedData/LengthWeightAge.RDS")
+saveRDS(LengthWeightAge,paste0(folderToUse,"LengthWeightAge.RDS"))
+#saveRDS(LengthData,"updatedData/LengthData.RDS")
+saveRDS(LengthData,paste0(folderToUse,"LengthData.RDS"))
+#saveRDS(mapdataS,"updatedData/mapdataS.RDS")
+saveRDS(mapdataS,paste0(folderToUse,"mapdataS.RDS"))
+#saveRDS(TotalNumbersMap,"updatedData/TotalNumbersMap.RDS")
+saveRDS(TotalNumbersMap,paste0(folderToUse,"TotalNumbersMap.RDS"))
+#saveRDS(AdultNumbersMap,"updatedData/AdultNumbersMap.RDS")
+saveRDS(AdultNumbersMap,paste0(folderToUse,"AdultNumbersMap.RDS"))
+#saveRDS(JuvNumbersMap,"updatedData/JuvNumbersMap.RDS")
+saveRDS(JuvNumbersMap,paste0(folderToUse,"JuvNumbersMap.RDS"))
 
 ```
 
 ### Nephrops Data
 ```{r Nephrops Data}
- datN$Functional_Unit<-as.factor(datN$Functional_Unit)
- datN<-filter(datN,Functional_Unit==16|Functional_Unit==17|Functional_Unit==19|Functional_Unit==22|Functional_Unit==99|Functional_Unit==2021)
- datN$Functional_Unit<-droplevels(datN$Functional_Unit)
- levels(datN$Functional_Unit)<-c("16" ,  "17" ,  "19" ,  "22" ,  "Outside FU" ,  "20-21")
-
- datN$Kg_Hr= datN$PredWt_Kg/datN$TowDurationMin*60
- datN$No_Km2= datN$NepCount/datN$AreaKmSq
- datN$No_30min = datN$NepCount/datN$TowDurationMin*30
- datN$AgeClassification<-datN$CLmm
- 
- datN$AgeClassification[which(datN$CLmm>17)]<-"Adult"
- datN$AgeClassification[which(datN$CLmm<=17)]<-"Juvenile"
- datN$AgeClassification<-as.factor(datN$AgeClassification)
- datN$Functional_Unit<-as.factor(datN$Functional_Unit)
-
- dat_raised= aggregate(datN[,c("NepCount", "PredWt_Kg", "Kg_Hr", "No_Km2", "No_30min")], 
-                       by=list(datN$Year, datN$Survey_Code, datN$Haul, datN$Functional_Unit, datN$Fishing_Grounds,
-                               datN$fldShotLatDecimalDegrees,datN$fldShotLonDecimalDegrees, 
-                               datN$fldHaulLatDecimalDegrees, datN$fldHaulLonDecimalDegrees,datN$Sex),
-                      FUN=sum,  na.rm=TRUE)
-names(dat_raised) = c("Year", "Survey_Code", "Haul", "Functional_Unit", "Fishing_Grounds",
-                      "Lat", "Lon", "LatV2", "LonV2","Sex", "NepCount", "PredWt_Kg", "Kg_Hr", "No_Km2", "No_30min")
- 
-dat_raised$symbSize <- sqrt( dat_raised$Kg_Hr/ pi )
-dat_raised$symbSize2 <- sqrt( dat_raised$No_Km2/ pi )
-dat_raised$symbSize3 <- sqrt( dat_raised$No_30min/ pi )
- 
-
- 
- #Juveniles Nep
-JuvenilesN= filter(datN, AgeClassification=="Juvenile")
-if(dim(JuvenilesN)[1]>0){
- JuvNumbersMapN=aggregate(JuvenilesN[,c("NepCount", "PredWt_Kg", "Kg_Hr", "No_Km2", "No_30min")],
-                          by=list(JuvenilesN$Year, JuvenilesN$Survey_Code, JuvenilesN$Haul, JuvenilesN$Functional_Unit, JuvenilesN$Fishing_Grounds,
-                                  JuvenilesN$fldShotLatDecimalDegrees,JuvenilesN$fldShotLonDecimalDegrees, 
-                                  JuvenilesN$fldHaulLatDecimalDegrees, JuvenilesN$fldHaulLonDecimalDegrees),
-                           FUN=sum,  na.rm=TRUE)
- names(JuvNumbersMapN) = c("Year", "Survey_Code", "Haul", "Functional_Unit", "Fishing_Grounds",
-                            "Lat", "Lon", "LatV2", "LonV2", "NepCount", "PredWt_Kg", "Kg_Hr", "No_Km2", "No_30min")
-  JuvNumbersMapN$symbSize <- sqrt( JuvNumbersMapN$No_30min/ pi )
-}else{
-  JuvNumbersMapN=data.frame("Year"=maxyear, "Survey_Code"=NA, "Haul"=NA, "Functional_Unit"=NA, "Fishing_Grounds"=NA,
-                             "Lat"=55.109, "Lon"=-9.558, "LatV2"=NA, "LonV2"=NA, "NepCount"=NA, "PredWt_Kg"=NA, 
-                            "Kg_Hr"=NA, "No_Km2"=NA, "No_30min"=NA,"symbSize"=NA)}
-
-
- 
-# #Adults
- AdultsN= filter(datN, AgeClassification=="Adult")
- if(dim(AdultsN)[1]>0){
-  AdultNumbersMapN=aggregate(AdultsN[,c("NepCount", "PredWt_Kg", "Kg_Hr", "No_Km2", "No_30min")],
-                             by=list(AdultsN$Year, AdultsN$Survey_Code, AdultsN$Haul, AdultsN$Functional_Unit, AdultsN$Fishing_Grounds,
-                                     AdultsN$fldShotLatDecimalDegrees,AdultsN$fldShotLonDecimalDegrees, 
-                                    AdultsN$fldHaulLatDecimalDegrees, AdultsN$fldHaulLonDecimalDegrees),
-                            FUN=sum,  na.rm=TRUE)
-  names(AdultNumbersMapN) = c("Year", "Survey_Code", "Haul", "Functional_Unit", "Fishing_Grounds",
-                             "Lat", "Lon", "LatV2", "LonV2", "NepCount", "PredWt_Kg", "Kg_Hr", "No_Km2", "No_30min")
-   AdultNumbersMapN$symbSize <- sqrt( AdultNumbersMapN$No_30min/ pi )
- }else{
-   AdultNumbersMapN=data.frame("Year"=maxyear, "Survey_Code"=NA, "Haul"=NA, "Functional_Unit"=NA, "Fishing_Grounds"=NA,
-                             "Lat"=55.109, "Lon"=-9.558, "LatV2"=NA, "LonV2"=NA, "NepCount"=NA, "PredWt_Kg"=NA,
-                             "Kg_Hr"=NA, "No_Km2"=NA, "No_30min"=NA,"symbSize"=NA)}
+#  datN$Functional_Unit<-as.factor(datN$Functional_Unit)
+#  datN<-filter(datN,Functional_Unit==16|Functional_Unit==17|Functional_Unit==19|Functional_Unit==22|Functional_Unit==99|Functional_Unit==2021)
+#  datN$Functional_Unit<-droplevels(datN$Functional_Unit)
+#  levels(datN$Functional_Unit)<-c("16" ,  "17" ,  "19" ,  "22" ,  "Outside FU" ,  "20-21")
+# 
+#  datN$Kg_Hr= datN$PredWt_Kg/datN$TowDurationMin*60
+#  datN$No_Km2= datN$NepCount/datN$AreaKmSq
+#  datN$No_30min = datN$NepCount/datN$TowDurationMin*30
+#  datN$AgeClassification<-datN$CLmm
+#  
+#  datN$AgeClassification[which(datN$CLmm>17)]<-"Adult"
+#  datN$AgeClassification[which(datN$CLmm<=17)]<-"Juvenile"
+#  datN$AgeClassification<-as.factor(datN$AgeClassification)
+#  datN$Functional_Unit<-as.factor(datN$Functional_Unit)
+# 
+#  dat_raised= aggregate(datN[,c("NepCount", "PredWt_Kg", "Kg_Hr", "No_Km2", "No_30min")], 
+#                        by=list(datN$Year, datN$Survey_Code, datN$Haul, datN$Functional_Unit, datN$Fishing_Grounds,
+#                                datN$fldShotLatDecimalDegrees,datN$fldShotLonDecimalDegrees, 
+#                                datN$fldHaulLatDecimalDegrees, datN$fldHaulLonDecimalDegrees,datN$Sex),
+#                       FUN=sum,  na.rm=TRUE)
+# names(dat_raised) = c("Year", "Survey_Code", "Haul", "Functional_Unit", "Fishing_Grounds",
+#                       "Lat", "Lon", "LatV2", "LonV2","Sex", "NepCount", "PredWt_Kg", "Kg_Hr", "No_Km2", "No_30min")
+#  
+# dat_raised$symbSize <- sqrt( dat_raised$Kg_Hr/ pi )
+# dat_raised$symbSize2 <- sqrt( dat_raised$No_Km2/ pi )
+# dat_raised$symbSize3 <- sqrt( dat_raised$No_30min/ pi )
+#  
+# 
+#  
+#  #Juveniles Nep
+# JuvenilesN= filter(datN, AgeClassification=="Juvenile")
+# if(dim(JuvenilesN)[1]>0){
+#  JuvNumbersMapN=aggregate(JuvenilesN[,c("NepCount", "PredWt_Kg", "Kg_Hr", "No_Km2", "No_30min")],
+#                           by=list(JuvenilesN$Year, JuvenilesN$Survey_Code, JuvenilesN$Haul, JuvenilesN$Functional_Unit, JuvenilesN$Fishing_Grounds,
+#                                   JuvenilesN$fldShotLatDecimalDegrees,JuvenilesN$fldShotLonDecimalDegrees, 
+#                                   JuvenilesN$fldHaulLatDecimalDegrees, JuvenilesN$fldHaulLonDecimalDegrees),
+#                            FUN=sum,  na.rm=TRUE)
+#  names(JuvNumbersMapN) = c("Year", "Survey_Code", "Haul", "Functional_Unit", "Fishing_Grounds",
+#                             "Lat", "Lon", "LatV2", "LonV2", "NepCount", "PredWt_Kg", "Kg_Hr", "No_Km2", "No_30min")
+#   JuvNumbersMapN$symbSize <- sqrt( JuvNumbersMapN$No_30min/ pi )
+# }else{
+#   JuvNumbersMapN=data.frame("Year"=maxyear, "Survey_Code"=NA, "Haul"=NA, "Functional_Unit"=NA, "Fishing_Grounds"=NA,
+#                              "Lat"=55.109, "Lon"=-9.558, "LatV2"=NA, "LonV2"=NA, "NepCount"=NA, "PredWt_Kg"=NA, 
+#                             "Kg_Hr"=NA, "No_Km2"=NA, "No_30min"=NA,"symbSize"=NA)}
 # 
 # 
-
-# NEP Length/Weight Plot#########
-lw<-datN
- lw$NepCount<-round(lw$NepCount,0)
- lw$Weight_g<-(lw$PredWt_Kg/ lw$NepCount)*1000
- 
- indLW<-lw%>%uncount(NepCount)
- indLW$FUnit<-as.factor(indLW$Functional_Unit)
- 
- 
-saveRDS(indLW,"updatedData/indLW.RDS")
-saveRDS(dat_raised,"updatedData/dat_raised.RDS")
-saveRDS(datN,"updatedData/datN.RDS")
-saveRDS(AdultNumbersMapN,"updatedData/AdultNumbersMapN.RDS")
-saveRDS(JuvNumbersMapN,"updatedData/JuvNumbersMapN.RDS")
+#  
+# # #Adults
+#  AdultsN= filter(datN, AgeClassification=="Adult")
+#  if(dim(AdultsN)[1]>0){
+#   AdultNumbersMapN=aggregate(AdultsN[,c("NepCount", "PredWt_Kg", "Kg_Hr", "No_Km2", "No_30min")],
+#                              by=list(AdultsN$Year, AdultsN$Survey_Code, AdultsN$Haul, AdultsN$Functional_Unit, AdultsN$Fishing_Grounds,
+#                                      AdultsN$fldShotLatDecimalDegrees,AdultsN$fldShotLonDecimalDegrees, 
+#                                     AdultsN$fldHaulLatDecimalDegrees, AdultsN$fldHaulLonDecimalDegrees),
+#                             FUN=sum,  na.rm=TRUE)
+#   names(AdultNumbersMapN) = c("Year", "Survey_Code", "Haul", "Functional_Unit", "Fishing_Grounds",
+#                              "Lat", "Lon", "LatV2", "LonV2", "NepCount", "PredWt_Kg", "Kg_Hr", "No_Km2", "No_30min")
+#    AdultNumbersMapN$symbSize <- sqrt( AdultNumbersMapN$No_30min/ pi )
+#  }else{
+#    AdultNumbersMapN=data.frame("Year"=maxyear, "Survey_Code"=NA, "Haul"=NA, "Functional_Unit"=NA, "Fishing_Grounds"=NA,
+#                              "Lat"=55.109, "Lon"=-9.558, "LatV2"=NA, "LonV2"=NA, "NepCount"=NA, "PredWt_Kg"=NA,
+#                              "Kg_Hr"=NA, "No_Km2"=NA, "No_30min"=NA,"symbSize"=NA)}
+# # 
+# # 
+# 
+# # NEP Length/Weight Plot#########
+# lw<-datN
+#  lw$NepCount<-round(lw$NepCount,0)
+#  lw$Weight_g<-(lw$PredWt_Kg/ lw$NepCount)*1000
+#  
+#  indLW<-lw%>%uncount(NepCount)
+#  indLW$FUnit<-as.factor(indLW$Functional_Unit)
+#  
+#  
+# saveRDS(indLW,"updatedData/indLW.RDS")
+# saveRDS(dat_raised,"updatedData/dat_raised.RDS")
+# saveRDS(datN,"updatedData/datN.RDS")
+# saveRDS(AdultNumbersMapN,"updatedData/AdultNumbersMapN.RDS")
+# saveRDS(JuvNumbersMapN,"updatedData/JuvNumbersMapN.RDS")
 
 ```
 
@@ -694,8 +724,10 @@ colnames(coeffs12)=c("Species","Data","Parameter","Year","Cohort", "Linf","K", "
 
 all_data<-do.call(rbind, lapply(paste0("coeffs", 1:12) , get))
 
-unlink("updatedData/coeff_L_A.csv")
-write.csv(all_data,"updatedData/coeff_L_A.csv",row.names = F)
+#unlink("updatedData/coeff_L_A.csv")
+#write.csv(all_data,"updatedData/coeff_L_A.csv",row.names = F)
+unlink(paste0(folderToUse,"coeff_L_A.csv"))
+write.csv(all_data,paste0(folderToUse,"coeff_L_A.csv"),row.names = F)
 
 ```
 

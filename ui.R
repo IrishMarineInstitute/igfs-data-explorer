@@ -3,7 +3,7 @@
 
 
 dashboardPage(
-  dashboardHeader(title = "IGFS"),
+  dashboardHeader(title = "Demersal Surveys"),
   dashboardSidebar( sidebarMenu(id="menu1",
     menuItem("Main Page", tabName = "dashboard", icon = icon("dashboard")),
     menuItem("Species specific pages", tabName = "sp", icon = icon("th"))
@@ -23,6 +23,9 @@ dashboardPage(
       #includeCSS(path = "adminLTE.css"), 
       #includeScript(path = "app.js"),
       tags$head(includeScript("google-analytics.js")),
+      fluidRow(
+        selectInput(inputId="surveyName",label="Select the survey", choices = c("Irish GroundFish Survey","Irish Anglerfish and Megrim Survey"))
+      ),
       fluidRow(valueBoxOutput("box1"),
                valueBoxOutput("box2"),
                valueBoxOutput("box3")
@@ -34,8 +37,10 @@ dashboardPage(
             column(4,
             id="controls", fixed=FALSE, draggable = TRUE,
                           fluidRow(column(11,selectInput("catch_measure",label=NULL, choices = c("Biomass (Kg)","Number of fish (per hour)")),
-                                             sliderInput("slideryear", "Year:", min = 2003, max = max(sp_data_gp$Year), value = max(sp_data_gp$Year),
-                                                        step = 1, sep = "", animate = TRUE))),
+                                             #sliderInput("slideryear", "Year:", min = 2003, max = max(sp_data_gp()$Year), value = max(sp_data_gp()$Year),
+                                            #            step = 1, sep = "", animate = TRUE))),
+                                            sliderInput("slideryear", "Year:", min = 2003, max = 2003, value = 2003,
+                                                    step = 1, sep = "", animate = TRUE))),
                           fluidRow(column(6,gaugeOutput("gauge1"),style = "margin-top:-0em"),
                                    column(6,gaugeOutput("gauge2"),style = "margin-top:-0em")),
                           fluidRow(column(12,

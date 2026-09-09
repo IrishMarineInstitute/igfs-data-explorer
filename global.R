@@ -41,33 +41,37 @@ centers <-readRDS("Data/shapefiles/centers.RDS")
 #Species selectInput
 sp_names<-read.csv("Data/Sp_names.csv", stringsAsFactors = TRUE)
 
+# stn=readRDS("Data/dataApp/stn.RDS")
+# data1=readRDS("Data/dataApp/data1.RDS")
+# dat=readRDS("Data/dataApp/dat.RDS")
+# dat1=readRDS("Data/dataApp/dat1.RDS")
+# mapdata <- readRDS("Data/dataApp/mapdata.RDS")
+# sp_data_gp <- readRDS("Data/dataApp/sp_data_gp.RDS")
+# LengthWeightAge <- readRDS("Data/dataApp/LengthWeightAge.RDS")
+# LengthData <- readRDS("Data/dataApp/LengthData.RDS")
+# mapdataS <- readRDS("Data/dataApp/mapdataS.RDS")
+# TotalNumbersMap <- readRDS("Data/dataApp/TotalNumbersMap.RDS")
+# AdultNumbersMap <- readRDS("Data/dataApp/AdultNumbersMap.RDS")
+# JuvNumbersMap <- readRDS("Data/dataApp/JuvNumbersMap.RDS")
+# indLW <- readRDS("Data/dataApp/indLW.RDS")
+# dat_raised <- readRDS("Data/dataApp/dat_raised.RDS")
+# datN <- readRDS("Data/dataApp/datN.RDS")
+# AdultNumbersMapN <- readRDS("Data/dataApp/AdultNumbersMapN.RDS")
+# JuvNumbersMapN <- readRDS("Data/dataApp/JuvNumbersMapN.RDS")
+# 
+# # Default to using the IGFS data
+# surveyToUse <- 'IGFS'
 
-stn=readRDS("Data/dataApp/stn.RDS")
-data1=readRDS("Data/dataApp/data1.RDS")
-dat=readRDS("Data/dataApp/dat.RDS")
-dat1=readRDS("Data/dataApp/dat1.RDS")
-mapdata <- readRDS("Data/dataApp/mapdata.RDS")
-sp_data_gp <- readRDS("Data/dataApp/sp_data_gp.RDS")
-LengthWeightAge <- readRDS("Data/dataApp/LengthWeightAge.RDS")
-LengthData <- readRDS("Data/dataApp/LengthData.RDS")
-mapdataS <- readRDS("Data/dataApp/mapdataS.RDS")
-TotalNumbersMap <- readRDS("Data/dataApp/TotalNumbersMap.RDS")
-AdultNumbersMap <- readRDS("Data/dataApp/AdultNumbersMap.RDS")
-JuvNumbersMap <- readRDS("Data/dataApp/JuvNumbersMap.RDS")
-indLW <- readRDS("Data/dataApp/indLW.RDS")
-dat_raised <- readRDS("Data/dataApp/dat_raised.RDS")
-datN <- readRDS("Data/dataApp/datN.RDS")
-AdultNumbersMapN <- readRDS("Data/dataApp/AdultNumbersMapN.RDS")
-JuvNumbersMapN <- readRDS("Data/dataApp/JuvNumbersMapN.RDS")
 
 ###max Year indicator
-maxyear=as.numeric(max(LengthData$Year))
+#maxyear=as.numeric(max(LengthData$Year))
 
 ############################################
 vbTyp = function(age, Linf, K, t0)Linf*(1-exp(-K*(age-t0)))
 ################################################
 
 coeff_L_A<-read.csv("Data/dataApp/coeff_L_A.csv", stringsAsFactors = TRUE)
+
 
 
 

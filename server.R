@@ -1,7 +1,92 @@
 
 function(input, output, session) {
   
+  surveyToUse <-  reactive({
+    print(paste0("Changing surveyName to ",input$surveyName))
+    surveyShortName <- ""
+    if (input$surveyName == "Irish GroundFish Survey"){
+      surveyShortName <- "IGFS"
+    } else if (input$surveyName == "Irish Anglerfish and Megrim Survey"){
+      surveyShortName <- "IAMS"
+    }
+    surveyShortName
+  })
+  
+  stn <- reactive({
+    print(paste0("Loading stn data"))
+    readRDS(paste0("Data/dataApp/",surveyToUse(),"/stn.RDS"))
+  })
 
+  data1 <- reactive({
+    print(paste0("Loading data1 data"))
+    readRDS(paste0("Data/dataApp/",surveyToUse(),"/data1.RDS"))
+  })
+
+  dat <- reactive({
+    print(paste0("Loading dat data"))
+    readRDS(paste0("Data/dataApp/",surveyToUse(),"/dat.RDS"))
+  })
+  
+  dat1 <- reactive({
+    print(paste0("Loading dat1 data"))
+    readRDS(paste0("Data/dataApp/",surveyToUse(),"/dat1.RDS"))
+  })
+  
+  mapdata <- reactive({
+    print(paste0("Loading mapdata data"))
+    readRDS(paste0("Data/dataApp/",surveyToUse(),"/mapdata.RDS"))
+  })
+  
+  sp_data_gp <- reactive({
+    print(paste0("Loading sp_data_gp data"))
+    readRDS(paste0("Data/dataApp/",surveyToUse(),"/sp_data_gp.RDS"))
+  })
+  
+  observe({
+    updateSliderInput(session, 
+                      "slideryear", 
+                      min=min(sp_data_gp()$Year),
+                      max=max(sp_data_gp()$Year),
+                      value = max(sp_data_gp()$Year))
+  })
+
+  LengthWeightAge <- reactive({
+    print(paste0("Loading LengthWeightAge data"))
+    readRDS(paste0("Data/dataApp/",surveyToUse(),"/LengthWeightAge.RDS"))
+  })
+
+  LengthData <- reactive({
+    print(paste0("Loading LengthData data"))
+    readRDS(paste0("Data/dataApp/",surveyToUse(),"/LengthData.RDS"))
+  })
+  
+  mapdataS <- reactive({
+    print(paste0("Loading mapdataS data"))
+    readRDS(paste0("Data/dataApp/",surveyToUse(),"/mapdataS.RDS"))
+  })
+
+  TotalNumbersMap <- reactive({
+    print(paste0("Loading TotalNumbersMap data"))
+    readRDS(paste0("Data/dataApp/",surveyToUse(),"/TotalNumbersMap.RDS"))
+  })
+
+  AdultNumbersMap <- reactive({
+    print(paste0("Loading AdultNumbersMap data"))
+    readRDS(paste0("Data/dataApp/",surveyToUse(),"/AdultNumbersMap.RDS"))
+  })
+  
+  JuvNumbersMap <- reactive({
+    print(paste0("Loading JuvNumbersMap data"))
+    readRDS(paste0("Data/dataApp/",surveyToUse(),"/JuvNumbersMap.RDS"))
+  })
+
+  minyear <- reactive({
+    as.numeric(min(LengthData()$Year))
+  })
+  
+  maxyear <- reactive({
+    as.numeric(max(LengthData()$Year))
+  })
   
   ##### Interactive Map 1 - Timeseries #####
   # Create the map - leaflet 
@@ -25,7 +110,7 @@ function(input, output, session) {
   
   # Filtering for Mapping 
   mapdata1 <- reactive({
-    subset(mapdata, Year %in% input$slideryear)
+    subset(mapdata(), Year %in% input$slideryear)
   })
   
   ##### Observer D #####
@@ -150,7 +235,7 @@ function(input, output, session) {
   ##### Pie chart  #####
 
   sp_data_gp1 <- reactive({
-    subset(sp_data_gp, Year %in% input$slideryear)
+    subset(sp_data_gp(), Year %in% input$slideryear)
   })
   sp_data_gp1_inView <- reactive({
     subset(sp_data_gp1(), sp_data_gp1()$PrimeStation %in% stnInView()$PrimeStation)
@@ -318,7 +403,7 @@ speciesFAO=reactive({filter(sp_names,species==input$sp1)$speciesFAO })
 output$Sp_name=renderUI({list(h3(paste("Species Name:",species())),h3(paste("FAO Code:", speciesFAO())))})
 #####for map#####
 output$yearfilter1=renderUI({
-  sliderInput("slideryearS", "Choose Year:", min = 2003, max = maxyear, value = maxyear, step = NULL, 
+  sliderInput("slideryearS", "Choose Year:", min = minyear(), max = maxyear(), value = maxyear(), step = NULL, 
               sep = "", animate = TRUE)
   
 })
@@ -333,7 +418,7 @@ else{selectInput("parameter", h3("Select Parameter"),
 #For Length/Weight and Length/Age plots
 output$yearfilter=renderUI({
   if(input$tabselected=="lw"  | input$tabselected=="la" | input$tabselected=="co"){
-    sliderInput("slideryearS1", "Choose Year:", min = 2003, max = maxyear, value = maxyear, step = NULL, 
+    sliderInput("slideryearS1", "Choose Year:", min = minyear(), max = maxyear(), value = maxyear(), step = NULL, 
                 sep = "", animate = TRUE)
   }
 })
@@ -358,23 +443,28 @@ juv_length_split=reactive({
   if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
     17}
 else{  
-  dplyr::filter(LengthData,Species%in%speciesFAO())$preRecruitLength[1]}
+  dplyr::filter(LengthData(),Species%in%speciesFAO())$preRecruitLength[1]}
   })
 ########Map#####
 cat=reactive({
   if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
-    dplyr::filter(dat_raised, Survey_Code %in% paste0('IGFS', input$slideryearS))}
+    #dplyr::filter(dat_raised, Survey_Code %in% paste0('IGFS', input$slideryearS))}
+    dplyr::filter(dat_raised(), Survey_Code %in% paste0(surveyToUse(), input$slideryearS))}
   else{
-    dplyr::filter(dat1, Cruise %in% paste0('IGFS', input$slideryearS),Species%in%speciesFAO())
+    #dplyr::filter(dat1, Cruise %in% paste0('IGFS', input$slideryearS),Species%in%speciesFAO())
+    print(paste0("cat reactive. ",surveyToUse(), input$slideryearS))
+    dplyr::filter(dat1(), Cruise %in% paste0(surveyToUse(), input$slideryearS),Species%in%speciesFAO())
    }
 })
 
 haul = reactive({
-  dplyr::filter(stn, fldCruiseName==paste0('IGFS',  input$slideryearS))
+  #dplyr::filter(stn, fldCruiseName==paste0('IGFS',  input$slideryearS))
+  print(paste0("haul reactive. ",surveyToUse(),  input$slideryearS))
+  dplyr::filter(stn(), fldCruiseName==paste0(surveyToUse(),  input$slideryearS))
 })
 
  mapdataSS=reactive({
-   subset(mapdataS, Year %in% input$slideryearS & No_km2>0 & Species%in%speciesFAO())
+   subset(mapdataS(), Year %in% input$slideryearS & No_km2>0 & Species%in%speciesFAO())
  })
  
 
@@ -383,20 +473,30 @@ haul = reactive({
    if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
      dplyr::filter(JuvNumbersMapN, Year %in% input$slideryearS & No_30min>0)
    }
-   else {dplyr::filter(JuvNumbersMap, Year %in% input$slideryearS & CatchNos30minHaul>0,Species%in%speciesFAO())}
+   else {
+     #dplyr::filter(JuvNumbersMap, Year %in% input$slideryearS & CatchNos30minHaul>0,Species%in%speciesFAO())
+     print(paste0("JuvNumbers reactive. ",surveyToUse(), input$slideryearS))
+     dplyr::filter(JuvNumbersMap(), Year %in% input$slideryearS & CatchNos30minHaul>0,Species%in%speciesFAO())
+     }
  })
  
  AdultNumbers=reactive({
    if(input$sp1=="Nephrops1"){ # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
      dplyr::filter(AdultNumbersMapN, Year %in% input$slideryearS & No_30min>0)
    }
-   else{dplyr::filter(AdultNumbersMap, Year %in% input$slideryearS & CatchNos30minHaul>0,Species%in%speciesFAO())}
+   else{
+     #dplyr::filter(AdultNumbersMap, Year %in% input$slideryearS & CatchNos30minHaul>0,Species%in%speciesFAO())
+     print(paste0("AdultNumbers reactive. ",surveyToUse(), input$slideryearS))
+     dplyr::filter(AdultNumbersMap(), Year %in% input$slideryearS & CatchNos30minHaul>0,Species%in%speciesFAO())
+     }
  })
 
 
  
  TotalNumbers=reactive({
-  dplyr::filter(TotalNumbersMap, Year %in% input$slideryearS & CatchNos30minHaul>0,Species%in%speciesFAO())
+   #dplyr::filter(TotalNumbersMap, Year %in% input$slideryearS & CatchNos30minHaul>0,Species%in%speciesFAO())
+   print(paste0("TotalNumbers reactive. ",surveyToUse(), input$slideryearS))
+   dplyr::filter(TotalNumbersMap(), Year %in% input$slideryearS & CatchNos30minHaul>0,Species%in%speciesFAO())
  })
  
  
@@ -408,17 +508,17 @@ haul = reactive({
  
 datS=reactive({
  
-   dplyr::filter(dat,Species%in%speciesFAO())
+   dplyr::filter(dat(),Species%in%speciesFAO())
  })
  
  data1S=reactive({
    
-   dplyr::filter(data1,Species%in%speciesFAO())
+   dplyr::filter(data1(),Species%in%speciesFAO())
  })
  
  LengthDataS=reactive({
   
-   dplyr::filter(LengthData,Species%in%speciesFAO())
+   dplyr::filter(LengthData(),Species%in%speciesFAO())
  })
 
 output$mymap <- renderLeaflet({
@@ -883,14 +983,14 @@ output$lfplotall=renderPlot({
      }
    }
   else{if(is.null(input$slideryearS1)){
-     subset(LengthWeightAge,fldFishWholeWeight!="NA" & Year == maxyear & fldMainSpeciesCode%in%speciesFAO())
+     subset(LengthWeightAge(),fldFishWholeWeight!="NA" & Year == maxyear() & fldMainSpeciesCode%in%speciesFAO())
    }else{
-     subset(LengthWeightAge,fldFishWholeWeight!="NA" & Year == input$slideryearS1 & fldMainSpeciesCode%in%speciesFAO())}}
+     subset(LengthWeightAge(),fldFishWholeWeight!="NA" & Year == input$slideryearS1 & fldMainSpeciesCode%in%speciesFAO())}}
  })
  
  LengthWeightAgeSp1=reactive({
    if(input$sp1=="Nephrops1"){filter(indLW, Weight_g!="NA")} # 8/5/26 This block now won't get run - Nephrops are now handled the same way as the other species
- else {filter(LengthWeightAge, fldFishWholeWeight!="NA",fldMainSpeciesCode%in%speciesFAO())}
+ else {filter(LengthWeightAge(), fldFishWholeWeight!="NA",fldMainSpeciesCode%in%speciesFAO())}
  })
  
 
@@ -1010,14 +1110,14 @@ output$coeff_table<-DT::renderDT({
 
 LengthWeightAgeSpA=reactive({
  if(is.null(input$slideryearS1)){
-    subset(LengthWeightAge,age!="NA" & Year == maxyear & fldMainSpeciesCode%in%speciesFAO())
+    subset(LengthWeightAge(),age!="NA" & Year == maxyear() & fldMainSpeciesCode%in%speciesFAO())
   }else{
-    subset(LengthWeightAge,age!="NA" & Year == input$slideryearS1 & fldMainSpeciesCode%in%speciesFAO())}
+    subset(LengthWeightAge(),age!="NA" & Year == input$slideryearS1 & fldMainSpeciesCode%in%speciesFAO())}
  })
 
 
 LengthWeightAgeSpA1=reactive({
-  filter(LengthWeightAge, age!="NA",fldMainSpeciesCode%in%speciesFAO())
+  filter(LengthWeightAge(), age!="NA",fldMainSpeciesCode%in%speciesFAO())
 })
   
   
@@ -1223,9 +1323,9 @@ output$latab=renderUI({
  })
  
  LengthWeightAgeSpAC=reactive({if(is.null(input$slideryearS1)){
-   subset(LengthWeightAge,age!="NA" & Cohort == maxyear & fldMainSpeciesCode%in%speciesFAO())
+   subset(LengthWeightAge(),age!="NA" & Cohort == maxyear() & fldMainSpeciesCode%in%speciesFAO())
  }else{
-   subset(LengthWeightAge,age!="NA" & Cohort == input$slideryearS1 & fldMainSpeciesCode%in%speciesFAO())}
+   subset(LengthWeightAge(),age!="NA" & Cohort == input$slideryearS1 & fldMainSpeciesCode%in%speciesFAO())}
  })
  
  
